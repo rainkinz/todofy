@@ -14,7 +14,8 @@ import {
   DEFAULT_VOLUME,
   MAX_CUSTOM_BYTES,
   parseSoundSettings,
-  playReminderSound,
+  playSound,
+  type SoundSettings,
   SOUNDS,
   SOUND_KEYS,
   type SoundId,
@@ -28,6 +29,7 @@ import {
   serializeQuickTimes,
 } from "../lib/quickTimes";
 import { formatTime } from "../lib/dates";
+import { Checkbox } from "./Checkbox";
 import { TimeField } from "./TimeField";
 import { useStore } from "../store";
 import type { TaskTimerMode } from "../types";
@@ -77,11 +79,13 @@ const WEEK_STARTS: { value: WeekStartPref; label: string }[] = [
 ];
 
 /** How often an unanswered reminder repeats. "0" is the default: it doesn't. */
+// Phrased as intervals, not durations: under a "keep reminding" heading a bare
+// "10 min" reads as how long the nagging lasts, which is not what it sets.
 const REPEAT_INTERVALS: { value: string; label: string }[] = [
-  { value: "0", label: "Once" },
-  { value: "2", label: "2 min" },
-  { value: "5", label: "5 min" },
-  { value: "10", label: "10 min" },
+  { value: "0", label: "Don't repeat" },
+  { value: "2", label: "Every 2 min" },
+  { value: "5", label: "Every 5 min" },
+  { value: "10", label: "Every 10 min" },
 ];
 
 const TIMER_MODES: { value: TaskTimerMode; label: string; hint: string }[] = [
@@ -303,8 +307,7 @@ export function SettingsView() {
         ]);
         setSound("custom");
         setCustomName(file.name);
-        setSoundError("");
-        void playReminderSound({ sound: "custom", volume, ramp: false, customData: data });
+        void playPreview({ sound: "custom", volume, ramp: false, customData: data });
       } catch {
         setSoundError("That file couldn't be read.");
       }
@@ -316,7 +319,19 @@ export function SettingsView() {
   const previewSound = async (id: SoundId, level: number) => {
     const data =
       id === "custom" ? await api.getSetting(SOUND_KEYS.data).catch(() => null) : null;
-    void playReminderSound({ sound: id, volume: level, ramp: false, customData: data });
+    await playPreview({ sound: id, volume: level, ramp: false, customData: data });
+  };
+
+  /** A preview that stays silent has to say why, or it reads as unimplemented. */
+  const playPreview = async (settings: SoundSettings) => {
+    try {
+      setSoundError("");
+      await playSound(settings);
+    } catch (error) {
+      setSoundError(
+        error instanceof Error ? error.message : "That sound couldn't be played.",
+      );
+    }
   };
 
   const saveQuickTimes = (next: string[]) => {
@@ -481,9 +496,9 @@ export function SettingsView() {
           {desktopNotifications && (
             <div class="border-t border-[var(--color-border)] px-4 py-3.5">
               <p class="mb-2 text-xs font-medium text-[var(--color-muted)]">
-                Keep reminding until answered
+                Repeat an unanswered reminder
               </p>
-              <div class="grid grid-cols-4 gap-2">
+              <div class="grid grid-cols-2 gap-2">
                 {REPEAT_INTERVALS.map((option) => (
                   <Choice
                     key={option.value}
@@ -496,7 +511,7 @@ export function SettingsView() {
               <p class="mt-3 text-xs text-[var(--color-faint)]">
                 {repeatEvery === "0"
                   ? "A reminder shows once and then waits for you."
-                  : `A reminder shows again every ${repeatEvery} minutes until you open it, dismiss it, snooze it, complete the task, or start timing it.`}
+                  : `Keeps going every ${repeatEvery} minutes for as long as it takes — it never gives up on its own. It stops when you open, dismiss or snooze it, complete the task, or start timing it.`}
               </p>
 
               <p class="mt-4 mb-2 text-xs font-medium text-[var(--color-muted)]">
@@ -552,13 +567,16 @@ export function SettingsView() {
                     aria-label="Reminder volume"
                   />
 
-                  <label class="mt-3 flex items-start gap-2.5 text-xs text-[var(--color-muted)]">
-                    <input
-                      type="checkbox"
-                      checked={ramp}
-                      onChange={toggleRamp}
-                      class="mt-0.5 accent-[var(--color-accent)]"
-                    />
+                  <button
+                    type="button"
+                    role="checkbox"
+                    aria-checked={ramp}
+                    onClick={toggleRamp}
+                    class="mt-3 flex w-full items-start gap-2.5 text-left text-xs text-[var(--color-muted)]"
+                  >
+                    <span class="mt-0.5">
+                      <Checkbox checked={ramp} interactive={false} size={16} />
+                    </span>
                     <span>
                       Get louder each time a reminder repeats
                       {repeatEvery === "0" && (
@@ -568,7 +586,7 @@ export function SettingsView() {
                         </em>
                       )}
                     </span>
-                  </label>
+                  </button>
                 </div>
               )}
             </div>
@@ -652,7 +670,6 @@ export function SettingsView() {
                   value={newQuickTime}
                   onChange={setNewQuickTime}
                   onDone={addNewQuickTime}
-                  variant="field"
                   label="Add"
                 />
               )}

@@ -142,14 +142,12 @@ export function EventEditor({
           {!allDay && (
             <div class="flex items-center gap-2">
               <TimeField
-                variant="field"
                 label="Start"
                 value={startTime || null}
                 onChange={(v) => setStartTime(v ?? "")}
               />
               <span class="text-xs text-[var(--color-faint)]">to</span>
               <TimeField
-                variant="field"
                 label="End"
                 value={endTime || null}
                 onChange={(v) => setEndTime(v ?? "")}

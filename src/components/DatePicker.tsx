@@ -17,7 +17,7 @@ const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
-const POPOVER_W = 268;
+const POPOVER_W = 292;
 const YEARS_PER_PAGE = 12;
 const MARGIN = 8;
 
@@ -128,10 +128,14 @@ export function DatePicker({
     };
   }, [open]);
 
+  // With a time or repeat row below, picking a day must not dismiss the rest
+  // of the scheduling flow.
+  const staysOpen = withTime || !!onRepeatChange;
+
   const pick = (date: string | null) => {
     onChange(date);
     if (!date) onTimeChange?.(null);
-    setOpen(false);
+    if (!staysOpen) setOpen(false);
   };
   const setTime = (t: string | null) => onTimeChange?.(t);
 
@@ -316,7 +320,7 @@ export function DatePicker({
                   </button>
                 )}
               </div>
-              <div class="flex items-center gap-1.5 px-0.5">
+              <div class="flex flex-wrap items-center gap-1.5 px-0.5">
                 {quickTimes.map((t) => (
                   <button
                     key={t}
@@ -331,6 +335,8 @@ export function DatePicker({
                     {formatTime(t)}
                   </button>
                 ))}
+              </div>
+              <div class="mt-1.5 flex px-0.5">
                 <TimeField
                   value={time || null}
                   onChange={setTime}
@@ -392,14 +398,30 @@ export function DatePicker({
             </div>
           )}
 
-          {allowClear && value && (
-            <button
-              type="button"
-              onClick={() => pick(null)}
-              class="mt-2 w-full rounded-md border-t border-[var(--color-border)] pt-2 text-xs text-[var(--color-faint)] hover:text-[var(--color-danger)]"
-            >
-              Clear date &amp; time
-            </button>
+          {((allowClear && value) || staysOpen) && (
+            <div class="mt-2 flex items-center gap-2 border-t border-[var(--color-border)] pt-2">
+              {allowClear && value && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    pick(null);
+                    setOpen(false);
+                  }}
+                  class="rounded-md px-1 text-xs text-[var(--color-faint)] hover:text-[var(--color-danger)]"
+                >
+                  Clear date &amp; time
+                </button>
+              )}
+              {staysOpen && (
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  class="ml-auto rounded-md bg-[var(--color-accent)] px-2.5 py-1 text-xs font-medium text-white"
+                >
+                  Done
+                </button>
+              )}
+            </div>
           )}
           </div>
         </Portal>

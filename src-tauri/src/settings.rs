@@ -56,18 +56,76 @@ pub fn task_timer_mode(conn: &Connection) -> String {
     read(conn, "task_timer_mode").unwrap_or_else(|| "tracker".into())
 }
 
-/// The desktop's locale as a BCP-47 tag (e.g. `de-DE`), or `None` if the
-/// environment says nothing useful.
+/// POSIX precedence for the time locale.
+const LOCALE_VARS: [&str; 3] = ["LC_ALL", "LC_TIME", "LANG"];
+
+/// The desktop's locale as a BCP-47 tag (e.g. `de-DE`), or `None` if nothing
+/// on this machine says.
 ///
-/// The webview cannot be trusted for this: under WebKitGTK `navigator.language`
-/// commonly reports `en-US` regardless of the session's `LC_TIME`, which is why
-/// clock and calendar formatting looked American on systems that are not.
-/// POSIX precedence is `LC_ALL` > `LC_TIME` > `LANG`.
+/// Only meaningful on Linux, where `navigator.language` cannot stand in for it:
+/// under WebKitGTK it commonly reports `en-US` regardless of the session's
+/// `LC_TIME`, which is why clock and calendar formatting looked American on
+/// systems that are not. macOS and Windows set no locale env vars for GUI
+/// apps, so they return `None` here and the frontend uses the webview instead —
+/// which is accurate on those platforms.
 fn read_system_locale() -> Option<String> {
-    ["LC_ALL", "LC_TIME", "LANG"]
+    locale_from_env().or_else(locale_from_session_config)
+}
+
+/// First entry, in POSIX precedence order, that names a real regional locale.
+/// Entries that are absent, empty or `C`/`POSIX` carry no preference, so the
+/// search continues past them instead of stopping: a session exporting
+/// `LC_ALL=` would otherwise mask a perfectly good `LANG`.
+fn pick_locale(lookup: impl Fn(&str) -> Option<String>) -> Option<String> {
+    LOCALE_VARS
         .iter()
-        .find_map(|key| std::env::var(key).ok())
-        .and_then(|raw| normalize_locale(&raw))
+        .find_map(|key| normalize_locale(&lookup(key)?))
+}
+
+fn locale_from_env() -> Option<String> {
+    pick_locale(|key| std::env::var(key).ok())
+}
+
+/// Sessions started by a display manager or an autostart entry often inherit no
+/// locale env vars at all, so fall back to the files the system records it in.
+#[cfg(target_os = "linux")]
+fn locale_from_session_config() -> Option<String> {
+    ["/etc/locale.conf", "/etc/default/locale"]
+        .iter()
+        .filter_map(|path| std::fs::read_to_string(path).ok())
+        .find_map(|text| parse_locale_conf(&text))
+}
+
+#[cfg(not(target_os = "linux"))]
+fn locale_from_session_config() -> Option<String> {
+    None
+}
+
+/// Pull the highest-precedence locale out of a `KEY=value` locale config,
+/// tolerating comments and the quoting Debian's `/etc/default/locale` uses.
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+fn parse_locale_conf(text: &str) -> Option<String> {
+    let mut found: [Option<&str>; LOCALE_VARS.len()] = [None; LOCALE_VARS.len()];
+    for line in text.lines() {
+        let line = line.trim();
+        if line.starts_with('#') {
+            continue;
+        }
+        let Some((key, value)) = line.split_once('=') else {
+            continue;
+        };
+        let value = value.trim().trim_matches(['"', '\'']);
+        if value.is_empty() {
+            continue;
+        }
+        if let Some(rank) = LOCALE_VARS.iter().position(|k| *k == key.trim()) {
+            found[rank].get_or_insert(value);
+        }
+    }
+    pick_locale(|key| {
+        let rank = LOCALE_VARS.iter().position(|k| *k == key)?;
+        found[rank].map(str::to_owned)
+    })
 }
 
 /// Turn a POSIX locale string into a BCP-47 tag: `de_DE.UTF-8@euro` -> `de-DE`.
@@ -122,7 +180,40 @@ pub fn set_autostart(app: AppHandle, enabled: bool) -> Result<(), String> {
 
 #[cfg(test)]
 mod tests {
-    use super::normalize_locale;
+    use super::{normalize_locale, parse_locale_conf, pick_locale};
+
+    /// The env path, without mutating this process's real environment.
+    fn pick(vars: &[(&str, &str)]) -> Option<String> {
+        pick_locale(|key| {
+            vars.iter()
+                .find(|(k, _)| *k == key)
+                .map(|(_, v)| (*v).to_owned())
+        })
+    }
+
+    /// An exported-but-empty `LC_ALL` used to end the search and strand the
+    /// app on its own defaults, ignoring a perfectly good `LANG`.
+    #[test]
+    fn an_empty_high_precedence_var_does_not_mask_a_lower_one() {
+        assert_eq!(
+            pick(&[("LC_ALL", ""), ("LANG", "de_DE.UTF-8")]),
+            Some("de-DE".into()),
+        );
+        assert_eq!(
+            pick(&[("LC_ALL", "C"), ("LANG", "de_DE.UTF-8")]),
+            Some("de-DE".into()),
+        );
+    }
+
+    #[test]
+    fn env_vars_follow_posix_precedence() {
+        assert_eq!(
+            pick(&[("LC_TIME", "de_DE.UTF-8"), ("LANG", "en_US.UTF-8")]),
+            Some("de-DE".into()),
+        );
+        assert_eq!(pick(&[("LANG", "en_US.UTF-8")]), Some("en-US".into()));
+        assert_eq!(pick(&[]), None);
+    }
 
     #[test]
     fn strips_encoding_and_modifier() {
@@ -138,5 +229,38 @@ mod tests {
         assert_eq!(normalize_locale("POSIX"), None);
         assert_eq!(normalize_locale("C.UTF-8"), None);
         assert_eq!(normalize_locale(""), None);
+    }
+
+    #[test]
+    fn reads_locale_conf_in_posix_precedence() {
+        assert_eq!(
+            parse_locale_conf("LANG=en_US.UTF-8\nLC_TIME=de_DE.UTF-8\n"),
+            Some("de-DE".into()),
+        );
+        assert_eq!(
+            parse_locale_conf("LC_TIME=de_DE.UTF-8\nLC_ALL=fr_FR.UTF-8\n"),
+            Some("fr-FR".into()),
+        );
+    }
+
+    #[test]
+    fn tolerates_quotes_comments_and_noise() {
+        let text = "# session locale\nLANG=\"de_DE.UTF-8\"\nXMODIFIERS=@im=ibus\nnot a pair\n";
+        assert_eq!(parse_locale_conf(text), Some("de-DE".into()));
+    }
+
+    /// An empty or C-valued entry must not mask a usable one further down.
+    #[test]
+    fn skips_entries_that_carry_no_preference() {
+        assert_eq!(
+            parse_locale_conf("LC_ALL=\nLANG=de_DE.UTF-8\n"),
+            Some("de-DE".into()),
+        );
+        assert_eq!(
+            parse_locale_conf("LC_ALL=C\nLANG=de_DE.UTF-8\n"),
+            Some("de-DE".into()),
+        );
+        assert_eq!(parse_locale_conf("LANG=\n"), None);
+        assert_eq!(parse_locale_conf(""), None);
     }
 }

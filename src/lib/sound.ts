@@ -47,7 +47,11 @@ export function parseSoundSettings(stored: {
   data?: string | null;
 }): SoundSettings {
   const sound = SOUNDS.find((option) => option.value === stored.sound)?.value;
-  const volume = Number(stored.volume);
+  // `Number(null)` and `Number("")` are both a perfectly finite 0, so an unset
+  // volume has to be rejected before the numeric check below — otherwise every
+  // profile that never touched the slider starts silent.
+  const raw = stored.volume?.trim();
+  const volume = raw ? Number(raw) : NaN;
   return {
     sound: sound ?? "chime",
     volume: Number.isFinite(volume) ? Math.min(100, Math.max(0, volume)) : DEFAULT_VOLUME,
@@ -96,14 +100,24 @@ let context: AudioContext | null = null;
  * Browsers start a context suspended until the page has seen a user gesture,
  * and may suspend it again when the window hides. A reminder fires on a timer,
  * which is never a gesture, so resume on every play.
+ *
+ * Failures throw rather than returning null: every one of them is silence, and
+ * silence is the one outcome the caller can't tell apart from success.
  */
-async function audio(): Promise<AudioContext | null> {
-  if (typeof AudioContext === "undefined") return null;
-  if (!context) context = new AudioContext();
-  if (context.state === "suspended") {
-    await context.resume().catch(() => {});
+async function audio(): Promise<AudioContext> {
+  if (typeof AudioContext === "undefined") {
+    throw new Error("This build's webview has no Web Audio support.");
   }
-  return context.state === "running" ? context : null;
+  if (!context) context = new AudioContext();
+  if (context.state !== "running") {
+    await context.resume();
+  }
+  if (context.state !== "running") {
+    // On Linux this is usually WebKitGTK without the GStreamer plugins it
+    // needs; the context exists but never starts.
+    throw new Error("The system blocked audio playback.");
+  }
+  return context;
 }
 
 function decodeBase64(data: string): ArrayBuffer {
@@ -158,10 +172,10 @@ function playTone(
 }
 
 /**
- * Silent settings, a missing audio context and a corrupt custom sound all end
- * the same way: quietly. A sound must never break the reminder it belongs to.
+ * Play once, reporting why it failed. Used by the settings preview, where
+ * silence with no explanation is indistinguishable from an unbuilt feature.
  */
-export async function playReminderSound(
+export async function playSound(
   settings: SoundSettings,
   round = 1,
 ): Promise<void> {
@@ -170,14 +184,25 @@ export async function playReminderSound(
   if (gain <= 0) return;
 
   const ctx = await audio();
-  if (!ctx) return;
 
+  if (settings.sound === "custom") {
+    if (!settings.customData) throw new Error("No custom sound is loaded.");
+    await playCustom(ctx, settings.customData, gain);
+    return;
+  }
+  playTone(ctx, TONES[settings.sound], gain);
+}
+
+/**
+ * Silent settings, a missing audio context and a corrupt custom sound all end
+ * the same way: quietly. A sound must never break the reminder it belongs to.
+ */
+export async function playReminderSound(
+  settings: SoundSettings,
+  round = 1,
+): Promise<void> {
   try {
-    if (settings.sound === "custom") {
-      if (settings.customData) await playCustom(ctx, settings.customData, gain);
-      return;
-    }
-    playTone(ctx, TONES[settings.sound], gain);
+    await playSound(settings, round);
   } catch {
     // Nothing to report: the notification itself has already been shown.
   }

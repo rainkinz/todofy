@@ -1,11 +1,14 @@
 /**
  * Locale resolution for clock and calendar conventions.
  *
- * The webview's own locale is unreliable — under WebKitGTK `navigator.language`
- * reports `en-US` whatever `LC_TIME` says — so it comes from the backend, with
- * explicit overrides. Resolved values live in module state so the formatters in
- * `dates.ts` can read them without hooks; changing one bumps `store.ts` to
- * repaint.
+ * Two sources, because neither covers every platform. On Linux the webview is
+ * useless — under WebKitGTK it reports `en-US` whatever `LC_TIME` says — so the
+ * backend reads the session locale instead. On macOS and Windows the reverse
+ * holds: GUI apps inherit no locale env vars, so the backend reports nothing
+ * and the webview is the accurate source. Explicit overrides beat both.
+ *
+ * Resolved values live in module state so the formatters in `dates.ts` can read
+ * them without hooks; changing one bumps `store.ts` to repaint.
  */
 
 import { api } from "./api";
@@ -44,6 +47,15 @@ const SATURDAY_FIRST = new Set([
   "SA", "SD", "SY", "YE",
 ]);
 
+/** What the webview itself reports; accurate on macOS and Windows, not Linux. */
+function runtimeLocale(): string | undefined {
+  try {
+    return new Intl.DateTimeFormat().resolvedOptions().locale;
+  } catch {
+    return undefined;
+  }
+}
+
 /** Does this locale write times with AM/PM? */
 function deriveHour12(locale: string | undefined): boolean {
   try {
@@ -69,7 +81,10 @@ function deriveHour12(locale: string | undefined): boolean {
 }
 
 /** Which weekday this locale starts on, as 0 = Sunday. */
-function deriveWeekStart(locale: string | undefined): number {
+function deriveWeekStart(preferred: string | undefined): number {
+  // Falling straight back to Monday would ignore the webview on the platforms
+  // where it is the only source, giving every US Mac an ISO week.
+  const locale = preferred ?? runtimeLocale();
   if (!locale) return 1;
   try {
     // `getWeekInfo` counts 1 = Monday .. 7 = Sunday; we want 0 = Sunday.
@@ -147,7 +162,10 @@ export function autoSummary(): string {
   const hour12 = deriveHour12(systemLocale);
   const start = deriveWeekStart(systemLocale);
   const day = ["Sunday", "Monday", "", "", "", "", "Saturday"][start];
-  return `${systemLocale ?? "system default"} · ${hour12 ? "12-hour" : "24-hour"} · week starts ${day}`;
+  // Name the source, not just the tag: "Auto is wrong" is almost always the
+  // system locale failing to arrive, and that is invisible from the result.
+  const source = systemLocale ?? `${runtimeLocale() ?? "unknown"} (no system locale)`;
+  return `${source} · ${hour12 ? "12-hour" : "24-hour"} · week starts ${day}`;
 }
 
 /**

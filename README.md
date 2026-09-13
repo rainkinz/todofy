@@ -40,7 +40,7 @@ Plan tasks and local events, stay focused with timers and reminders, optionally 
 - 🔍 **Search & filters** — narrow any view by title/notes as you type, with filter chips for priority and labels; press `/` to jump to search
 - 🧠 **ADHD-friendly touches** — relative due dates (_"in 3 days"_), a completion streak & confetti reward (both optional and motion-safe), and a `?` shortcut cheat-sheet
 - 🏷️ **Labels** — create, rename, recolor (with a full custom color picker), and delete; a searchable Labels page plus per-label filtering
-- 📆 **Beautiful date & time picker** — click the month or year to jump anywhere in seconds; set the time in a themed **HH:MM** field that follows your locale, choose the recurrence right there, and edit the one‑tap quick times to whatever suits your day
+- 📆 **Beautiful date & time picker** — click the month or year to jump anywhere in seconds, then set the date, the time, and the recurrence in a single pass without the picker closing on you. The time goes into a themed **HH:MM** field that follows your locale, and the one‑tap quick times are yours to edit
 - ⏰ **Reminders that reach you** — desktop notifications fire **even when hidden in the tray**, as either a system notification or todofy's own popup card pinned to a screen corner, with one‑tap **snooze**. Optionally repeat until you actually answer, with a **sound** (built‑in or your own file), a volume, and a ramp that gets louder each time
 - 🚩 **Priorities** — P1–P4 with color‑coded flags
 - ⚙️ **Settings & run‑on‑startup** — launch todofy at login, opening the window or starting quietly in the tray
@@ -93,20 +93,20 @@ Grab a package from the [Releases](../../releases) page, or build it yourself (s
 **AppImage** — portable, runs on any distro:
 
 ```bash
-chmod +x todofy_1.10.0_amd64.AppImage
-./todofy_1.10.0_amd64.AppImage
+chmod +x todofy_1.10.2_amd64.AppImage
+./todofy_1.10.2_amd64.AppImage
 ```
 
 **Debian / Ubuntu:**
 
 ```bash
-sudo dpkg -i todofy_1.10.0_amd64.deb
+sudo dpkg -i todofy_1.10.2_amd64.deb
 ```
 
 **Fedora / RHEL / openSUSE:**
 
 ```bash
-sudo rpm -i todofy-1.10.0-1.x86_64.rpm
+sudo rpm -i todofy-1.10.2-1.x86_64.rpm
 ```
 
 **macOS** — open the `.dmg` and drag todofy into Applications. It's not
@@ -114,14 +114,14 @@ notarized yet, so on first launch right‑click the app and choose **Open** to
 get past Gatekeeper:
 
 ```
-todofy_1.10.0_universal.dmg  # Intel and Apple Silicon
+todofy_1.10.2_universal.dmg  # Intel and Apple Silicon
 ```
 
 **Windows** — run the installer:
 
 ```
-todofy_1.10.0_x64-setup.exe   # NSIS installer
-todofy_1.10.0_x64_en-US.msi   # or the MSI
+todofy_1.10.2_x64-setup.exe   # NSIS installer
+todofy_1.10.2_x64_en-US.msi   # or the MSI
 ```
 
 > Your tasks live in the app's data directory — `~/.local/share/com.unifybrowse.todofy/`

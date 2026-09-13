@@ -13,23 +13,12 @@ import { usesHour12 } from "../lib/locale";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-/** `compact` suits the date-picker's time row; `field` a standalone form input. */
-type Variant = "compact" | "field";
-
-const WRAPPER: Record<Variant, string> = {
-  compact:
-    "ml-auto gap-0.5 rounded-md bg-[var(--color-bg)] px-2 py-1 text-xs",
-  field:
-    "flex-1 gap-1 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm",
-};
-
 interface Props {
   /** Stored 24-hour "HH:mm", or null when unset. */
   value: string | null;
   onChange: (value: string | null) => void;
   /** Enter — commit and dismiss the surrounding popover. */
   onDone?: () => void;
-  variant?: Variant;
   /** Prefix for the segment labels, so paired fields stay distinguishable. */
   label?: string;
   invalid?: boolean;
@@ -39,7 +28,6 @@ export function TimeField({
   value,
   onChange,
   onDone,
-  variant = "compact",
   label,
   invalid = false,
 }: Props) {
@@ -153,30 +141,31 @@ export function TimeField({
     setMinuteText(pad(parsed.m));
   };
 
-  const toggleMeridiem = () => {
-    const next = !pm;
-    setPm(next);
-    commit(hourText, minuteText, next);
+  const setMeridiem = (afternoon: boolean) => {
+    if (afternoon === pm) return;
+    setPm(afternoon);
+    commit(hourText, minuteText, afternoon);
   };
 
-  // Segments inherit the wrapper's font size so both variants stay consistent.
+  // 3ch, not 2: `ch` is the width of a zero and the "HH"/"MM" placeholders are
+  // wider than the digits they stand in for.
   const segment =
-    "w-[2.25ch] bg-transparent text-center text-[length:inherit] tabular-nums text-[var(--color-text)] outline-none placeholder:text-[var(--color-faint)]";
+    "w-[3ch] bg-transparent text-center text-sm tabular-nums text-[var(--color-text)] outline-none placeholder:text-[var(--color-faint)]";
   const name = (part: string) => (label ? `${label} ${part.toLowerCase()}` : part);
 
   return (
     <div
-      class={`flex items-center focus-within:ring-1 ${WRAPPER[variant]} ${
+      class={`flex flex-1 items-center justify-center gap-1 rounded-lg border bg-[var(--color-bg)] px-3 py-2 focus-within:ring-1 ${
         invalid
-          ? "ring-1 ring-[var(--color-danger)] focus-within:ring-[var(--color-danger)]"
-          : "focus-within:ring-[var(--color-accent)]"
+          ? "border-[var(--color-danger)] ring-1 ring-[var(--color-danger)] focus-within:ring-[var(--color-danger)]"
+          : "border-[var(--color-border)] focus-within:ring-[var(--color-accent)]"
       }`}
     >
       <input
         type="text"
         inputMode="numeric"
         aria-label={name("Hour")}
-        placeholder={hour12 ? "--" : "HH"}
+        placeholder="HH"
         value={hourText}
         onInput={(event) => onHourInput(event.currentTarget.value)}
         onKeyDown={(event) => onKeyDown(event, "hour")}
@@ -184,7 +173,7 @@ export function TimeField({
         onBlur={onBlur}
         class={segment}
       />
-      <span class="text-xs text-[var(--color-faint)]">:</span>
+      <span class="text-sm text-[var(--color-faint)]">:</span>
       <input
         ref={minuteRef}
         type="text"
@@ -199,14 +188,25 @@ export function TimeField({
         class={segment}
       />
       {hour12 && (
-        <button
-          type="button"
-          onClick={toggleMeridiem}
-          class="ml-1 rounded px-1 text-[10px] font-medium uppercase text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
-          title="Toggle AM/PM"
-        >
-          {pm ? "PM" : "AM"}
-        </button>
+        // Two explicit options, not a toggle: a lone "AM" reads as a label and
+        // leaves the user guessing whether it's the state or the action.
+        <div class="ml-1.5 flex items-center gap-0.5 rounded-md bg-[var(--color-surface-2)] p-0.5">
+          {[false, true].map((afternoon) => (
+            <button
+              key={afternoon ? "PM" : "AM"}
+              type="button"
+              aria-pressed={afternoon === pm}
+              onClick={() => setMeridiem(afternoon)}
+              class={`rounded px-1.5 py-0.5 text-[10px] font-medium transition-colors ${
+                afternoon === pm
+                  ? "bg-[var(--color-accent)] text-white"
+                  : "text-[var(--color-muted)] hover:text-[var(--color-text)]"
+              }`}
+            >
+              {afternoon ? "PM" : "AM"}
+            </button>
+          ))}
+        </div>
       )}
     </div>
   );

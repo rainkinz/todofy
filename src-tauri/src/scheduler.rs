@@ -75,7 +75,8 @@ fn collect_due(app: &AppHandle) -> Result<Vec<DueReminder>, String> {
     // Repeats are limited to reminders the user hasn't answered yet.
     let mut stmt = conn
         .prepare(
-            "SELECT id, title, remind_at, due_date, notified, last_notified_at FROM tasks
+            "SELECT id, title, remind_at, due_date, notified, last_notified_at, created_at
+             FROM tasks
              WHERE status = 'active' AND deleted_at IS NULL
                AND (remind_at IS NOT NULL OR due_date IS NOT NULL)
                AND (notified = 0 OR reminder_ack_at IS NULL)",
@@ -91,6 +92,7 @@ fn collect_due(app: &AppHandle) -> Result<Vec<DueReminder>, String> {
                 r.get::<_, Option<String>>(3)?,
                 r.get::<_, i64>(4)?,
                 r.get::<_, Option<String>>(5)?,
+                r.get::<_, Option<String>>(6)?,
             ))
         })
         .map_err(|e| e.to_string())?
@@ -98,8 +100,12 @@ fn collect_due(app: &AppHandle) -> Result<Vec<DueReminder>, String> {
         .map_err(|e| e.to_string())?;
 
     let mut due = Vec::new();
-    for (id, title, remind_at, due_date, notified, last_notified_at) in rows {
-        let Some(fires_at) = reminder_instant(remind_at.as_deref(), due_date.as_deref()) else {
+    for (id, title, remind_at, due_date, notified, last_notified_at, created_at) in rows {
+        let Some(fires_at) = reminder_instant(
+            remind_at.as_deref(),
+            due_date.as_deref(),
+            created_at.as_deref(),
+        ) else {
             continue;
         };
         if fires_at > now {
@@ -138,7 +144,11 @@ fn repeat_is_due(
 /// Resolve when a task should notify: its explicit `remind_at` if set,
 /// otherwise its `due_date` at the default reminder hour. `None` means the
 /// task has no schedulable time (or the stored value could not be parsed).
-fn reminder_instant(remind_at: Option<&str>, due_date: Option<&str>) -> Option<DateTime<Local>> {
+fn reminder_instant(
+    remind_at: Option<&str>,
+    due_date: Option<&str>,
+    created_at: Option<&str>,
+) -> Option<DateTime<Local>> {
     if let Some(ra) = remind_at {
         return DateTime::parse_from_rfc3339(ra)
             .ok()
@@ -146,13 +156,86 @@ fn reminder_instant(remind_at: Option<&str>, due_date: Option<&str>) -> Option<D
     }
     let day = NaiveDate::parse_from_str(due_date?, "%Y-%m-%d").ok()?;
     let time = NaiveTime::from_hms_opt(DEFAULT_REMINDER_HOUR, 0, 0)?;
-    Local.from_local_datetime(&day.and_time(time)).single()
+    let fires_at = Local.from_local_datetime(&day.and_time(time)).single()?;
+
+    // Unlike `remind_at`, this hour is the app's invention rather than the
+    // user's choice, so a task that did not exist when it passed never had a
+    // moment to nudge at. Without this, adding a task due today at any time
+    // after DEFAULT_REMINDER_HOUR notifies the instant it is created.
+    let created = created_at
+        .and_then(|at| DateTime::parse_from_rfc3339(at).ok())
+        .map(|dt| dt.with_timezone(&Local));
+    if created.is_some_and(|c| fires_at < c) {
+        return None;
+    }
+    Some(fires_at)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use chrono::Duration;
+
+    fn at(dt: DateTime<Local>) -> String {
+        dt.to_rfc3339()
+    }
+    fn day(dt: DateTime<Local>) -> String {
+        dt.format("%Y-%m-%d").to_string()
+    }
+
+    /// Adding a task due today, after the default hour has already passed,
+    /// used to fire a notification on the very next poll.
+    #[test]
+    fn a_task_created_after_the_default_hour_does_not_nudge_for_today() {
+        let now = Local::now()
+            .with_time(NaiveTime::from_hms_opt(DEFAULT_REMINDER_HOUR + 5, 0, 0).unwrap())
+            .single()
+            .expect("unambiguous local time");
+        assert_eq!(
+            reminder_instant(None, Some(&day(now)), Some(&at(now))),
+            None,
+        );
+    }
+
+    /// The same task, created before the default hour, still nudges at it.
+    #[test]
+    fn a_task_created_before_the_default_hour_still_nudges_for_today() {
+        let now = Local::now()
+            .with_time(NaiveTime::from_hms_opt(DEFAULT_REMINDER_HOUR - 2, 0, 0).unwrap())
+            .single()
+            .expect("unambiguous local time");
+        let fires = reminder_instant(None, Some(&day(now)), Some(&at(now)))
+            .expect("a reminder is still scheduled");
+        assert!(fires > now, "should fire later today, not immediately");
+    }
+
+    /// An overdue task from a previous day must still nudge once the app is
+    /// reopened — that is the whole point of the date-only fallback.
+    #[test]
+    fn an_overdue_task_from_an_earlier_day_still_nudges() {
+        let created = Local::now() - Duration::days(3);
+        let due = Local::now() - Duration::days(2);
+        assert!(reminder_instant(None, Some(&day(due)), Some(&at(created))).is_some());
+    }
+
+    /// A time the user chose explicitly is honoured even if already past;
+    /// only the app's invented hour is suppressed.
+    #[test]
+    fn an_explicit_past_reminder_is_left_alone() {
+        let now = Local::now();
+        let chosen = now - Duration::hours(1);
+        let fires = reminder_instant(Some(&at(chosen)), None, Some(&at(now)))
+            .expect("an explicit reminder always resolves");
+        assert_eq!(fires.timestamp(), chosen.timestamp());
+    }
+
+    /// A missing or unreadable creation time must not suppress the reminder.
+    #[test]
+    fn an_unknown_creation_time_keeps_the_default_hour() {
+        let due = Local::now() - Duration::days(1);
+        assert!(reminder_instant(None, Some(&day(due)), None).is_some());
+        assert!(reminder_instant(None, Some(&day(due)), Some("not a timestamp")).is_some());
+    }
 
     #[test]
     fn a_reminder_only_repeats_when_repeats_are_switched_on() {

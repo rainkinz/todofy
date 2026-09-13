@@ -1,5 +1,22 @@
 # Changelog
 
+## v1.10.2 — 2026-09-13
+
+### Fixed
+
+- **Adding a task no longer fires a reminder at you the moment you create it.** A task with a due date but no set time is nudged at 9:00 on the day it's due — but that hour is todofy's own default, not a time you chose, so a task created after it had already passed was treated as instantly overdue. In practice that meant **every task added from _Today_ after 9 in the morning notified you within seconds of typing it**. A task now only gets that default nudge if it existed when the hour came round; genuinely overdue tasks from earlier days still nudge you when you reopen todofy, and a time you set yourself is always honoured
+- **Reminder sounds were silent on any install that never touched the volume slider.** An unset volume was being read as 0 rather than the intended 70%, so both the **Play** button in Settings and every reminder sound played at zero — indistinguishable from the feature not existing. Setting the volume to 0 deliberately still mutes, as it should
+- **The date picker no longer closes the moment you click a day.** When the picker also carries a time, repeat, or snooze row, choosing a date used to dismiss the whole thing before you could reach any of them. It now stays open so a date, a time, and a recurrence can be set in one pass, and closes on **Done**, Escape, or a click outside. Pickers that only choose a date still close immediately as before
+- **A sound that can't play now says why.** Audio failures were swallowed silently, so a blocked or unsupported audio system looked exactly like an unfinished feature. Settings now reports the reason; a failing sound still never interferes with the reminder itself
+- **Clock and calendar conventions are detected more reliably.** A session that exports an empty `LC_ALL` no longer hides a perfectly good `LANG`, and todofy now falls back to the system's own locale configuration when a session passes none through — a common case when it's started by a display manager or at login. On macOS and Windows, where no locale variables are set at all, the week now starts on the right day instead of always Monday
+
+### Changed
+
+- **Repeating reminders explain themselves.** Under a heading that read "Keep reminding until answered", options labelled "2 min" and "10 min" looked like how long the nagging would last rather than how often it repeats. They now read **Every 2 min**, **Every 5 min**, and **Every 10 min**, and the description says plainly that a repeating reminder never gives up on its own and lists exactly what stops it
+- **The date picker's time field has its own full-width row** instead of being squeezed in beside the one-tap quick times. AM/PM is now a proper two-option switch rather than a single button showing the current value, and the hour and minute placeholders read `HH` and `MM` consistently
+- **Settings shows where "Auto" gets your clock and calendar settings from**, so a wrong result says whether the system reported nothing or reported something unexpected
+- The "get louder each time a reminder repeats" checkbox now uses todofy's own themed control, matching the rest of the app instead of the unstyled system one
+
 ## v1.10.1 - 2026-09-12
 
 ### Fixed
