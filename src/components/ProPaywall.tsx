@@ -164,7 +164,7 @@ export function ProPaywall() {
             />
           ) : (
             <div class="mt-7">
-              <AccessNotice state={state} allowed={allowed} validUntil={validUntil} />
+              <AccessNotice state={state} allowed={allowed} plan={plan} validUntil={validUntil} />
 
               <div
                 role="group"
@@ -365,14 +365,18 @@ function SelectedPlanPrice({
 function AccessNotice({
   state,
   allowed,
+  plan,
   validUntil,
 }: {
   state: string;
   allowed: boolean;
+  plan: BillingPlan | "transition" | null;
   validUntil: string | null;
 }) {
-  if (allowed && state === "active") return null;
+  // An entitled account only reaches the picker on transition access, and that
+  // stays true while the entitlement is re-verified in the background.
   if (allowed) {
+    if (plan !== "transition") return null;
     return (
       <Notice tone="accent" className="mb-5">
         {validUntil

@@ -71,6 +71,11 @@ interface BillingState {
 const apiBase = (import.meta.env.VITE_TODOFY_API_URL ?? "").replace(/\/+$/, "");
 export const billingConfigured = Boolean(apiBase);
 
+/** The account whose entitlement the store currently holds a server answer for. */
+let verified: string | null = null;
+let inFlight: Promise<void> | null = null;
+let lastRefreshAt = 0;
+
 class BillingAPIError extends Error {
   constructor(readonly code: string, readonly status: number) {
     super(code);
@@ -260,27 +265,45 @@ export const useBilling = create<BillingState>((set, get) => ({
   refresh: async () => {
     const user = useAuth.getState().session?.user;
     if (!billingConfigured || !user) {
+      verified = null;
       set({ state: "free", allowed: false, plan: null, validUntil: null, revision: "0", error: null });
       return;
     }
-    const cached = cachedAccess(user.id);
-    set({ state: "checking", ...cached, error: null });
+    // Window focus, visibility, sync rounds, and the gate can all ask at once;
+    // one round-trip answers all of them.
+    if (inFlight) return inFlight;
+    const round = (async () => {
+      const cached = cachedAccess(user.id);
+      // Re-verifying an account we already resolved keeps showing that answer.
+      // Dropping back to "checking" would blink the paywall on every refresh.
+      if (verified === user.id) set({ error: null });
+      else set({ state: "checking", ...cached, error: null });
+      try {
+        const result = await request<EntitlementResponse>("/v1/me/entitlements");
+        if (useAuth.getState().session?.user.id !== user.id) return;
+        const access = result.capabilities.cloud_sync;
+        remember(user.id, access);
+        verified = user.id;
+        set({
+          state: access.state,
+          allowed: access.allowed,
+          plan: access.plan ?? null,
+          validUntil: access.valid_until,
+          revision: access.revision,
+          error: null,
+        });
+      } catch (error) {
+        if (useAuth.getState().session?.user.id !== user.id) return;
+        verified = null;
+        set({ state: "unavailable", ...cached, error: message(error) });
+      }
+    })();
+    inFlight = round;
     try {
-      const result = await request<EntitlementResponse>("/v1/me/entitlements");
-      if (useAuth.getState().session?.user.id !== user.id) return;
-      const access = result.capabilities.cloud_sync;
-      remember(user.id, access);
-      set({
-        state: access.state,
-        allowed: access.allowed,
-        plan: access.plan ?? null,
-        validUntil: access.valid_until,
-        revision: access.revision,
-        error: null,
-      });
-    } catch (error) {
-      if (useAuth.getState().session?.user.id !== user.id) return;
-      set({ state: "unavailable", ...cached, error: message(error) });
+      await round;
+    } finally {
+      if (inFlight === round) inFlight = null;
+      lastRefreshAt = Date.now();
     }
   },
 
@@ -371,6 +394,7 @@ export function initBilling() {
     lastUser = user;
     if (user) void useBilling.getState().refresh();
     else {
+      verified = null;
       useBilling.setState({
         state: "free",
         allowed: false,
@@ -383,10 +407,12 @@ export function initBilling() {
     }
   });
 
+  // Both events fire when the window comes back, and WebKitGTK repeats them
+  // freely, so a recent answer is reused instead of re-asking.
   const refreshOnReturn = () => {
-    if (document.visibilityState === "visible" && useAuth.getState().session) {
-      void useBilling.getState().refresh();
-    }
+    if (document.visibilityState !== "visible" || !useAuth.getState().session) return;
+    if (Date.now() - lastRefreshAt < 30_000) return;
+    void useBilling.getState().refresh();
   };
   document.addEventListener("visibilitychange", refreshOnReturn);
   window.addEventListener("focus", refreshOnReturn);

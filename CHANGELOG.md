@@ -14,6 +14,7 @@
 ### Changed
 
 - Official hosted Cloud Sync now checks the account's server-verified entitlement before manual and scheduled synchronization. Local tasks, calendars, timers, reminders, and Google Calendar integration remain available without Pro
+- Subscription checks stay out of your way. Todofy keeps showing the access it has already confirmed while it quietly re-verifies in the background, folds overlapping checks into a single request, and won't re-ask within half a minute of the last answer — so the Pro window reads steadily instead of blinking each time the app regains focus
 - Sign-in and account creation have moved into a focused authentication dialog, while the Account section now presents sync, subscription, activation, and deletion states more clearly
 - Cloud pulls use one database RPC snapshot so related tasks, labels, sessions, journal entries, and deletion markers share a consistent server watermark
 - Supabase traffic now uses Tauri's native HTTP transport, avoiding unnecessary browser CORS preflights while keeping requests limited to Supabase hosts
