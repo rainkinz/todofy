@@ -49,10 +49,10 @@ Plan tasks and local events, stay focused with timers and reminders, optionally 
 - ⌨️ **Keyboard‑first** — add, navigate, complete, and edit without touching the mouse
 - 🪟 **System tray** — closes to tray and keeps running so reminders never miss; start/pause the Pomodoro, pause or stop the task timer, and watch the live countdown right from the tray
 - 🧭 **Date-oriented navigation** — move between smart views from the top navigation bar and use the day rail to jump through your schedule
-- ☁️ **Optional account sync** — sign in with an email and password or **Continue with Google** to sync your tasks, labels, focus history, and journal across devices (backed by Supabase, with row‑level security). Sessions are kept in your OS secret store, and the whole thing is opt‑in. If you switch accounts on one installation, Todofy pauses before syncing and lets you load the new account's cloud data or safely copy the current device data into it with new record IDs
+- ☁️ **Optional account sync** — official Todofy Cloud Sync is a Pro feature at **€3.99/month or €39/year**; local use stays free, and the source-available self-hosting setup remains documented below. Buy securely in Lemon Squeezy before or after creating an account, then return to Todofy, sign in, and activate the emailed license for that account. Sign in with email/password or **Continue with Google** to sync tasks, labels, focus history, and journal across devices (backed by Supabase, with row‑level security). Sessions are kept in your OS secret store. If you switch accounts on one installation, Todofy pauses before syncing and lets you load the new account's cloud data or safely copy the current device data into it with new record IDs
 - 🗓️ **Local calendar** — plan in month, week, or day views, with tasks on their due dates and standalone all-day or timed events you can create and edit. Standalone events stay on this device and are not included in account sync or pushed to Google
 - 📅 **Google Calendar sync** — push your dated tasks to a dedicated **todofy** calendar (one‑way) so they sit right beside your meetings: all‑day for date‑only tasks, timed for tasks with a reminder. Recurring tasks move as they roll, completed and deleted tasks tidy themselves up, and you can keep finished tasks or limit the push to timed tasks only. Opt‑in, gated behind account sign‑in
-- 🗑️ **Delete your account** — remove your current account and all of its cloud data whenever you like, and optionally wipe the copy on this device too. You can register a fresh account later with the same email address
+- 🗑️ **Delete your account** — cancel any linked recurring Todofy subscription first, then remove your current account and all of its cloud data; optionally wipe the copy on this device too. If cancellation cannot be confirmed, deletion stops safely so you can retry. You can register a fresh account later with the same email address
 - 💾 **Local‑first** — everything is stored in a local SQLite database and works fully offline; sync is additive, and with no account there's no cloud and no tracking
 
 ## 📸 Screenshots
@@ -86,6 +86,24 @@ Plan tasks and local events, stay focused with timers and reminders, optionally 
   </tr>
 </table>
 
+## ☁️ Todofy Pro
+
+Todofy stays fully useful offline without an account. **Todofy Pro** adds official
+Cloud Sync for **€3.99/month or €39/year**, covering tasks, labels, focus history,
+and journal entries across your signed-in devices.
+
+Open **Pro** inside Todofy to choose a plan, complete checkout securely in your
+browser, then return to the app and activate the license from your receipt. An
+existing Lemon Squeezy license can be activated after signing in. Subscription
+status is verified by Todofy's billing service and enforced again by the hosted
+database; cancelling keeps access only through the paid-through date. Account
+deletion first cancels a linked recurring subscription and stops safely if that
+cancellation cannot be confirmed.
+
+Cancel anytime, with a full refund within 14 days of any charge. See the
+[Terms of Service](https://unifybrowse.com/products/todofy/terms) and
+[Privacy Policy](https://unifybrowse.com/products/todofy/privacy).
+
 ## 📦 Install
 
 Grab a package from the [Releases](../../releases) page, or build it yourself (see below).
@@ -93,20 +111,20 @@ Grab a package from the [Releases](../../releases) page, or build it yourself (s
 **AppImage** — portable, runs on any distro:
 
 ```bash
-chmod +x todofy_1.10.2_amd64.AppImage
-./todofy_1.10.2_amd64.AppImage
+chmod +x todofy_1.11.0_amd64.AppImage
+./todofy_1.11.0_amd64.AppImage
 ```
 
 **Debian / Ubuntu:**
 
 ```bash
-sudo dpkg -i todofy_1.10.2_amd64.deb
+sudo dpkg -i todofy_1.11.0_amd64.deb
 ```
 
 **Fedora / RHEL / openSUSE:**
 
 ```bash
-sudo rpm -i todofy-1.10.2-1.x86_64.rpm
+sudo rpm -i todofy-1.11.0-1.x86_64.rpm
 ```
 
 **macOS** — open the `.dmg` and drag todofy into Applications. It's not
@@ -114,14 +132,14 @@ notarized yet, so on first launch right‑click the app and choose **Open** to
 get past Gatekeeper:
 
 ```
-todofy_1.10.2_universal.dmg  # Intel and Apple Silicon
+todofy_1.11.0_universal.dmg  # Intel and Apple Silicon
 ```
 
 **Windows** — run the installer:
 
 ```
-todofy_1.10.2_x64-setup.exe   # NSIS installer
-todofy_1.10.2_x64_en-US.msi   # or the MSI
+todofy_1.11.0_x64-setup.exe   # NSIS installer
+todofy_1.11.0_x64_en-US.msi   # or the MSI
 ```
 
 > Your tasks live in the app's data directory — `~/.local/share/com.unifybrowse.todofy/`
@@ -175,12 +193,21 @@ bun run tauri build
 
 Bundles are written to `src-tauri/target/release/bundle/` (`.deb`, `.rpm`, and `.AppImage`).
 
+Release builds also produce signed updater artifacts, so the build needs the updater's private key in the environment — `.env` files are not read for this:
+
+```bash
+export TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/todofy-updater.key)"
+export TAURI_SIGNING_PRIVATE_KEY_PASSWORD=""
+```
+
+Official releases are signed in CI from the `TAURI_SIGNING_PRIVATE_KEY` repository secret. To build unsigned bundles for yourself, generate your own keypair with `bunx tauri signer generate -w ~/.tauri/todofy-updater.key` and put the matching public key in `plugins.updater.pubkey` — the in-app updater only installs bundles signed by the key it was built with, so an unofficial build cannot be updated from the official releases.
+
 ### Optional: self‑host account sync
 
 Sync is **off by default** — todofy is local‑first and works fully offline without it. To run your own sync backend so your tasks, labels, focus history, and journal follow you across devices (with nothing going through anyone else's server):
 
 1. **Create a Supabase project** — the free tier is plenty — at [supabase.com](https://supabase.com), or use any Postgres you control. Make sure **Email** auth is enabled (it is by default).
-2. **Apply the schema.** Open the project's **SQL Editor** and run the migrations in order — [`20260826120000_sync_schema.sql`](supabase/migrations/20260826120000_sync_schema.sql), [`20260902000000_journal.sql`](supabase/migrations/20260902000000_journal.sql), [`20260902133603_sync_tombstones.sql`](supabase/migrations/20260902133603_sync_tombstones.sql), then [`20260909120000_task_estimate.sql`](supabase/migrations/20260909120000_task_estimate.sql) — or use the [Supabase CLI](https://supabase.com/docs/guides/cli):
+2. **Apply the schema.** Open the project's **SQL Editor** and run the migrations in order — [`20260826120000_sync_schema.sql`](supabase/migrations/20260826120000_sync_schema.sql), [`20260902000000_journal.sql`](supabase/migrations/20260902000000_journal.sql), [`20260902133603_sync_tombstones.sql`](supabase/migrations/20260902133603_sync_tombstones.sql), [`20260909120000_task_estimate.sql`](supabase/migrations/20260909120000_task_estimate.sql), then [`20260914120000_sync_pull.sql`](supabase/migrations/20260914120000_sync_pull.sql) — or use the [Supabase CLI](https://supabase.com/docs/guides/cli):
 
    ```bash
    supabase link --project-ref <your-project-ref>
@@ -197,13 +224,29 @@ Sync is **off by default** — todofy is local‑first and works fully offline w
    # VITE_SUPABASE_PUBLISHABLE_KEY=<your-publishable-key>
    ```
 
+   Supabase requests go through Tauri's native HTTP transport, which only reaches
+   hosts listed in [`capabilities/default.json`](src-tauri/capabilities/default.json).
+   A hosted `*.supabase.co` project and a local `supabase start` stack both work as
+   shipped. If you run Supabase on **your own domain**, add it to the `http:default`
+   allow list before building, or every request is denied and sync silently stops:
+
+   ```jsonc
+   { "identifier": "http:default", "allow": [
+     { "url": "https://*.supabase.co/*" },
+     { "url": "https://supabase.example.com/*" }   // ← your host
+   ]}
+   ```
+
 4. **Deploy the account-deletion function.** So users can delete their own account (which can't be done with the client key), deploy the [`delete-account`](supabase/functions/delete-account/index.ts) edge function. It verifies the caller and deletes their auth user; the schema's `on delete cascade` removes all their data:
 
    ```bash
    supabase functions deploy delete-account
+   supabase secrets set TODOFY_BILLING_REQUIRED=false
    ```
 
-   The edge runtime provides the service-role key automatically — no secrets to configure.
+   The edge runtime provides the service-role key automatically. The explicit
+   `TODOFY_BILLING_REQUIRED=false` setting declares that this self-hosted project
+   has no Todofy recurring billing to cancel.
 
 5. **(Optional) Enable Google sign-in.** In the [Google Cloud Console](https://console.cloud.google.com), create an OAuth client of type **Web application** and add your Supabase callback (`https://<your-project-ref>.supabase.co/auth/v1/callback`) as an authorized redirect URI. Paste the client ID and secret into **Supabase → Authentication → Providers → Google**, then add the exact URL `http://127.0.0.1:3369/auth-callback` under **Supabase → Authentication → URL Configuration → Redirect URLs**. Do not add this loopback URL to the Google Cloud OAuth client; Google redirects to Supabase, and Supabase redirects back to Todofy. Todofy starts the local listener before opening the system browser, completes the PKCE code exchange, and then shows a success or error page with a **Back to Todofy** button. Port `3369` must be available while sign-in is running.
 

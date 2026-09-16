@@ -3,7 +3,10 @@ import type { Session } from "@supabase/supabase-js";
 import { invoke } from "@tauri-apps/api/core";
 import { supabase, syncConfigured } from "./supabase";
 
-type AuthResult = { ok: true } | { ok: false; error: string };
+export type AuthResult =
+  | { ok: true; message?: string }
+  | { ok: false; error: string };
+export type AuthIntent = "account" | "pro";
 
 const OAUTH_REDIRECT = "http://127.0.0.1:3369/auth-callback";
 
@@ -17,8 +20,12 @@ interface AuthState {
   /** False until the initial session lookup resolves, so the UI can wait. */
   ready: boolean;
   email: string | null;
+  dialogOpen: boolean;
+  dialogIntent: AuthIntent;
 
   init: () => void;
+  openDialog: (intent?: AuthIntent) => void;
+  closeDialog: () => void;
   signIn: (email: string, password: string) => Promise<AuthResult>;
   signUp: (email: string, password: string) => Promise<AuthResult>;
   signInWithGoogle: () => Promise<AuthResult>;
@@ -30,6 +37,11 @@ export const useAuth = create<AuthState>((set) => ({
   session: null,
   ready: false,
   email: null,
+  dialogOpen: false,
+  dialogIntent: "account",
+
+  openDialog: (intent = "account") => set({ dialogOpen: true, dialogIntent: intent }),
+  closeDialog: () => set({ dialogOpen: false }),
 
   init: () => {
     // No project configured for this build: mark ready so the UI stops waiting,
@@ -46,7 +58,11 @@ export const useAuth = create<AuthState>((set) => ({
       });
     });
     supabase.auth.onAuthStateChange((_event, session) => {
-      set({ session, email: session?.user.email ?? null });
+      set({
+        session,
+        email: session?.user.email ?? null,
+        ...(session ? { dialogOpen: false } : {}),
+      });
     });
   },
 
@@ -59,11 +75,18 @@ export const useAuth = create<AuthState>((set) => ({
   },
 
   signUp: async (email, password) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
     });
-    return error ? { ok: false, error: error.message } : { ok: true };
+    if (error) return { ok: false, error: error.message };
+    if (data.user && !data.session) {
+      return {
+        ok: true,
+        message: "Check your email to confirm your account, then return here and sign in.",
+      };
+    }
+    return { ok: true };
   },
 
   signInWithGoogle: async () => {
@@ -107,14 +130,21 @@ export const useAuth = create<AuthState>((set) => ({
 
   signOut: async () => {
     await supabase.auth.signOut();
+    set({ dialogOpen: false });
   },
 
   deleteAccount: async (wipeLocal) => {
     // Must run before signOut so the function still gets the caller's JWT.
     const { error } = await supabase.functions.invoke("delete-account", {
       method: "POST",
+      body: { confirmation: "DELETE" },
     });
-    if (error) return { ok: false, error: error.message };
+    if (error) {
+      return {
+        ok: false,
+        error: "Your account was not deleted because subscription cancellation or account cleanup could not be confirmed. Please try again.",
+      };
+    }
 
     try {
       await invoke(wipeLocal ? "wipe_local_data" : "sync_reset");

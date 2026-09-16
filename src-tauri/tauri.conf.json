@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "todofy",
-  "version": "1.10.2",
+  "version": "1.11.0",
   "identifier": "com.unifybrowse.todofy",
   "build": {
     "beforeDevCommand": "bun run dev",
@@ -50,7 +50,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; img-src 'self' data: asset: http://asset.localhost; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' ipc: http://ipc.localhost https://*.supabase.co wss://*.supabase.co https://oauth2.googleapis.com https://www.googleapis.com; font-src 'self'"
+      "csp": "default-src 'self'; img-src 'self' data: asset: http://asset.localhost; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' ipc: http://ipc.localhost https://*.supabase.co wss://*.supabase.co https://apitodofy.unifybrowse.com https://oauth2.googleapis.com https://www.googleapis.com; font-src 'self'"
     }
   },
   "plugins": {
@@ -58,11 +58,21 @@
       "desktop": {
         "schemes": ["todofy"]
       }
+    },
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDc4QkNERDhFNkM4QzA4MDAKUldRQUNJeHNqdDI4ZUEyak1xWnQ0bWtCd1VoVDVlKzg4OUE5MURtRDF0YUhZZFVkbEdiRE5LQS8K",
+      "endpoints": [
+        "https://github.com/salarzeidanlou/todofy/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
     }
   },
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

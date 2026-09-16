@@ -43,11 +43,20 @@ fn set_last(payload: Option<PopupPayload>) {
     *LAST_PAYLOAD.lock().unwrap_or_else(|e| e.into_inner()) = payload;
 }
 
+/// What a popup is about, so the card can dress itself accordingly.
+#[derive(Serialize, Clone, Copy, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum PopupKind {
+    Reminder,
+    Update,
+}
+
 /// Payload sent to the popup webview so it can render the card.
 #[derive(Serialize, Clone)]
 pub struct PopupPayload {
     /// Unique per show, so the webview resets its auto-dismiss timer.
     nonce: u64,
+    kind: PopupKind,
     title: String,
     body: String,
     /// Task to open when the user clicks the card, if any.
@@ -56,7 +65,13 @@ pub struct PopupPayload {
 
 /// Position the popup in the configured corner, push the content to its webview,
 /// and show it without stealing focus.
-pub fn show(app: &AppHandle, title: &str, body: &str, task_id: Option<String>) {
+pub fn show_kind(
+    app: &AppHandle,
+    kind: PopupKind,
+    title: &str,
+    body: &str,
+    task_id: Option<String>,
+) {
     let Some(win) = app.get_webview_window(POPUP_LABEL) else {
         return;
     };
@@ -75,6 +90,7 @@ pub fn show(app: &AppHandle, title: &str, body: &str, task_id: Option<String>) {
     let nonce = NONCE.fetch_add(1, Ordering::Relaxed);
     let payload = PopupPayload {
         nonce,
+        kind,
         title: title.to_owned(),
         body: body.to_owned(),
         task_id,
@@ -185,4 +201,57 @@ pub fn notify_popup_open(app: AppHandle, task_id: Option<String>) {
         }
     }
     hide(&app);
+}
+
+/// Same, but the card was an update notice: the main window opens on the
+/// update controls rather than on a task.
+#[tauri::command]
+pub fn notify_popup_open_update(app: AppHandle) {
+    if let Some(main) = app.get_webview_window("main") {
+        let _ = main.show();
+        let _ = main.unminimize();
+        let _ = main.set_focus();
+        let _ = main.emit("update-open", ());
+    }
+    hide(&app);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The popup webview switches on these field names and on the lowercase
+    /// `kind`, so a rename here is a silently blank card over there.
+    #[test]
+    fn payload_matches_what_the_webview_reads() {
+        let payload = PopupPayload {
+            nonce: 7,
+            kind: PopupKind::Update,
+            title: "todofy 1.12.0 is available".into(),
+            body: "Click to download and install it.".into(),
+            task_id: None,
+        };
+        let json = serde_json::to_value(&payload).unwrap();
+
+        assert_eq!(json["nonce"], 7);
+        assert_eq!(json["kind"], "update");
+        assert_eq!(json["title"], "todofy 1.12.0 is available");
+        assert_eq!(json["body"], "Click to download and install it.");
+        assert!(json["task_id"].is_null());
+    }
+
+    #[test]
+    fn a_reminder_still_serializes_as_one() {
+        let payload = PopupPayload {
+            nonce: 1,
+            kind: PopupKind::Reminder,
+            title: "Call the bank".into(),
+            body: "Due now".into(),
+            task_id: Some("abc".into()),
+        };
+        let json = serde_json::to_value(&payload).unwrap();
+
+        assert_eq!(json["kind"], "reminder");
+        assert_eq!(json["task_id"], "abc");
+    }
 }

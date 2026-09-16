@@ -10,6 +10,7 @@ import { parseSoundSettings, playReminderSound, SOUND_KEYS } from "./lib/sound";
 import { useAuth } from "./lib/auth";
 import { initSync } from "./lib/sync";
 import { initCalendar } from "./lib/googleCalendar";
+import { initBilling } from "./lib/billing";
 import { applyTheme } from "./lib/theme";
 import { useKeyboard } from "./lib/useKeyboard";
 import type { ActiveReminder } from "./types";
@@ -22,6 +23,11 @@ import { FocusWidget } from "./components/FocusWidget";
 import { ShortcutsOverlay } from "./components/ShortcutsOverlay";
 import { Celebration } from "./components/Celebration";
 import { SyncAccountDialog } from "./components/SyncAccountDialog";
+import { ProPaywall } from "./components/ProPaywall";
+import { AuthDialog } from "./components/AuthDialog";
+import { Onboarding } from "./components/onboarding/Onboarding";
+import { initOnboarding } from "./lib/onboarding";
+import { initUpdater } from "./lib/updater";
 
 export function App() {
   const load = useStore((s) => s.load);
@@ -68,14 +74,20 @@ export function App() {
   useKeyboard();
 
   useEffect(() => {
-    load();
+    // The first-run tour needs to know whether this install already holds
+    // data, so it waits for the first load to land.
+    load().then(initOnboarding);
     loadTimers();
     // Restore any saved Supabase session and watch for auth changes.
     useAuth.getState().init();
+    // Load authoritative Cloud Sync access before the sync scheduler starts.
+    initBilling();
     // Wire account sync (runs on sign-in, then periodically + after edits).
     initSync();
     // Wire Google Calendar push (pushes dated tasks while connected).
     initCalendar();
+    // Look for a new version in the background, a while after startup.
+    initUpdater();
     // Ask for desktop notification permission once, up front.
     (async () => {
       if (!(await isPermissionGranted())) {
@@ -90,6 +102,10 @@ export function App() {
     // The custom notification popup was clicked — jump to that task.
     const unOpen = listen<string>("reminder-open", (e) => {
       useStore.getState().select(e.payload);
+    });
+    // An update notice was clicked — open the controls that act on it.
+    const unUpdate = listen("update-open", () => {
+      setView({ kind: "settings" });
     });
     // Played here rather than in the popup window, which may never have had
     // the user gesture audio playback requires. The payload is the round.
@@ -114,6 +130,7 @@ export function App() {
     return () => {
       unlisten.then((off) => off());
       unOpen.then((off) => off());
+      unUpdate.then((off) => off());
       unSound.then((off) => off());
       unAdded.then((off) => off());
       unChanged.then((off) => off());
@@ -167,8 +184,11 @@ export function App() {
       <ReminderToasts />
       <ConfirmDialog />
       <SyncAccountDialog />
+      <ProPaywall />
+      <AuthDialog />
       <ShortcutsOverlay />
       <Celebration />
+      <Onboarding />
       <ContextMenu appItems={menuActions} />
     </div>
   );

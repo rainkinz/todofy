@@ -37,3 +37,12 @@ dist-ssr
 skills-lock.json
 graphify-out
 design-qa-*.png
+
+# Private rollout notes and store media are maintained outside the public app.
+docs/cloud-sync-billing-rollout.md
+# Drafting copies of the legal texts; the published ones live on the website.
+legal/
+assets/lemon-squeezy/
+
+# Standalone private billing backend (publish only to a separate private repo).
+/private/todofy-api/

@@ -201,19 +201,31 @@ body {
   display: none;
 }
 
+/* Scrolls instead of spilling over .top-actions if the labels ever outgrow the
+   space the breakpoints assume (wider system font, longer translations). */
 .top-navigation {
   display: flex;
   min-width: 0;
   flex: 1;
   align-items: stretch;
   justify-content: center;
+  justify-content: safe center;
   gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
   padding-left: 18px;
+  scrollbar-width: none;
+}
+
+.top-navigation::-webkit-scrollbar {
+  display: none;
 }
 
 .top-nav-item {
   position: relative;
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   gap: 9px;
@@ -227,7 +239,7 @@ body {
 .top-nav-item::after {
   position: absolute;
   right: 12px;
-  bottom: -1px;
+  bottom: 0;
   left: 12px;
   height: 2px;
   border-radius: 2px 2px 0 0;
@@ -262,6 +274,34 @@ body {
 .top-settings {
   padding-right: 14px;
   padding-left: 14px;
+}
+
+/* The update notice: a nav item that has something to say, so it carries the
+   accent rather than waiting to be hovered. It isn't a page, so no underline. */
+.top-update {
+  width: 44px;
+  padding: 0;
+}
+
+.top-update svg {
+  color: var(--color-accent);
+}
+
+.top-update:hover svg {
+  color: var(--color-accent-hover);
+}
+
+/* A dot, so the notice reads as "something is waiting" at a glance. */
+.top-update::before {
+  position: absolute;
+  top: 16px;
+  right: 9px;
+  width: 6px;
+  height: 6px;
+  border: 1.5px solid var(--color-bg);
+  border-radius: 999px;
+  background: var(--color-accent);
+  content: "";
 }
 
 .top-settings {
@@ -2976,7 +3016,10 @@ body {
   background: var(--color-accent);
 }
 
-@media (max-width: 1180px) {
+/* Narrowest width that still fits the brand rail, every labelled item and its
+   padding, with .top-actions at its widest — update marker shown and Cloud Sync
+   not yet bought. Below it the top bar is icons-only. */
+@media (max-width: 1599px) {
   .top-nav-item span {
     display: none;
   }
@@ -2998,7 +3041,9 @@ body {
   .top-settings {
     margin-right: 4px;
   }
+}
 
+@media (max-width: 1180px) {
   .task-row-meta span:nth-child(n + 4) {
     display: none;
   }
@@ -3119,15 +3164,8 @@ body {
   .top-navigation {
     gap: 0;
     justify-content: flex-start;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
     padding-left: 0;
-    scrollbar-width: none;
     scroll-snap-type: x proximity;
-  }
-
-  .top-navigation::-webkit-scrollbar {
-    display: none;
   }
 
   .top-navigation .top-nav-item {
@@ -3188,6 +3226,291 @@ body {
 }
 .animate-confetti {
   animation: confetti 0.9s ease-out forwards;
+}
+
+/* ------------------------------------------------------------------ *
+ * First-run tour.
+ *
+ * Everything below animates transform and opacity only — WebKitGTK drops
+ * frames on animated filters. Looping animations rest on their final state,
+ * so the reduced-motion block (which collapses them to 0.01ms) leaves the
+ * artwork looking finished rather than caught mid-flight.
+ * ------------------------------------------------------------------ */
+@keyframes onb-curtain-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.onb-curtain {
+  animation: onb-curtain-in 0.22s ease-out both;
+}
+
+@keyframes onb-curtain-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+}
+.onb-curtain-leaving {
+  animation: onb-curtain-out 0.34s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@keyframes onb-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.onb-card {
+  animation: onb-card-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Direction-aware slide change: the outgoing slide is held absolutely over
+   the incoming one for the length of the transition. */
+@keyframes onb-enter-right {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes onb-enter-left {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes onb-leave-left {
+  to {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+}
+@keyframes onb-leave-right {
+  to {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}
+.onb-enter-right {
+  animation: onb-enter-right 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.onb-enter-left {
+  animation: onb-enter-left 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.onb-leaving {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+.onb-leaving > * {
+  width: 100%;
+}
+.onb-leaving.onb-leave-left {
+  animation: onb-leave-left 0.26s ease-in both;
+}
+.onb-leaving.onb-leave-right {
+  animation: onb-leave-right 0.26s ease-in both;
+}
+
+/* Children of a slide arrive a beat after it, one after another. */
+@keyframes onb-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.onb-stagger > * {
+  animation: onb-rise 0.44s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.onb-stagger > *:nth-child(1) {
+  animation-delay: 0.06s;
+}
+.onb-stagger > *:nth-child(2) {
+  animation-delay: 0.12s;
+}
+.onb-stagger > *:nth-child(3) {
+  animation-delay: 0.18s;
+}
+.onb-stagger > *:nth-child(4) {
+  animation-delay: 0.24s;
+}
+.onb-stagger > *:nth-child(5) {
+  animation-delay: 0.3s;
+}
+.onb-stagger > *:nth-child(6) {
+  animation-delay: 0.36s;
+}
+
+/* Ambient accent light behind the welcome mark. */
+@keyframes onb-orb {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(26px, -20px, 0) scale(1.14);
+  }
+}
+.onb-orb {
+  animation: onb-orb 16s ease-in-out infinite;
+}
+
+@keyframes onb-bloom {
+  from {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.onb-bloom {
+  animation: onb-bloom 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Stroke drawing; each user sets --len to its own path length. */
+@keyframes onb-draw {
+  from {
+    stroke-dashoffset: var(--len);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.onb-draw {
+  stroke-dasharray: var(--len);
+  animation: onb-draw 0.85s cubic-bezier(0.65, 0, 0.35, 1) 0.3s both;
+}
+
+/* The focus ring filling a session, on a loop. */
+.onb-ring {
+  stroke-dasharray: var(--len);
+  animation: onb-draw 7s linear infinite;
+}
+
+/* Parsed chips landing as you type. */
+@keyframes onb-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.72) translateY(6px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.06) translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.onb-pop {
+  animation: onb-pop 0.34s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes onb-caret {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  50%,
+  95% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.onb-caret {
+  animation: onb-caret 1.1s steps(1, end) infinite;
+}
+
+/* The hotkey demo, played once on arrival: keycaps press, the capture window
+   drops in, then a reminder slides in. Staggered by delay rather than looped,
+   so the finished scene stays on screen instead of blinking out. */
+@keyframes onb-key {
+  0%,
+  20% {
+    transform: translateY(0);
+  }
+  40%,
+  60% {
+    transform: translateY(3px);
+  }
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+}
+.onb-key {
+  animation: onb-key 0.9s ease-in-out both;
+}
+
+@keyframes onb-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.onb-drop {
+  animation: onb-drop 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.55s both;
+}
+
+@keyframes onb-toast {
+  from {
+    opacity: 0;
+    transform: translateX(22px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.onb-toast {
+  animation: onb-toast 0.5s cubic-bezier(0.22, 1, 0.36, 1) 1.05s both;
+}
+
+/* Idle drift on the feature cards, so the grid never sits completely still. */
+@keyframes onb-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+.onb-float {
+  animation: onb-float 5s ease-in-out infinite;
 }
 
 /* Respect the OS "reduce motion" setting. Motion can be distracting or

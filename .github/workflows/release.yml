@@ -14,9 +14,9 @@ on:
   push:
     branches: [main]
     paths:
-      - 'package.json'
-      - 'src-tauri/tauri.conf.json'
-      - 'src-tauri/Cargo.toml'
+      - "package.json"
+      - "src-tauri/tauri.conf.json"
+      - "src-tauri/Cargo.toml"
   workflow_dispatch:
 
 permissions:
@@ -33,7 +33,7 @@ jobs:
       version: ${{ steps.detect.outputs.version }}
       release: ${{ steps.detect.outputs.release }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v5
 
       - name: Detect version and whether it needs releasing
         id: detect
@@ -50,22 +50,153 @@ jobs:
             echo "release=true" >> "$GITHUB_OUTPUT"
           fi
 
-  release:
+  validate:
     needs: check
+    if: needs.check.outputs.release == 'true'
+    runs-on: ubuntu-22.04
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_SUPABASE_SCHEMA: ${{ secrets.VITE_SUPABASE_SCHEMA }}
+      VITE_TODOFY_API_URL: ${{ secrets.VITE_TODOFY_API_URL }}
+      VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+      VITE_GOOGLE_CLIENT_SECRET: ${{ secrets.VITE_GOOGLE_CLIENT_SECRET }}
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Validate version and official release configuration
+        shell: bash
+        run: |
+          for NAME in \
+            VITE_SUPABASE_URL \
+            VITE_SUPABASE_PUBLISHABLE_KEY \
+            VITE_SUPABASE_SCHEMA \
+            VITE_TODOFY_API_URL \
+            VITE_GOOGLE_CLIENT_ID \
+            VITE_GOOGLE_CLIENT_SECRET \
+            TAURI_SIGNING_PRIVATE_KEY
+          do
+            if [ -z "${!NAME}" ]; then
+              echo "::error::$NAME is required for an official release."
+              exit 1
+            fi
+          done
+
+          node <<'NODE'
+          const fs = require('node:fs');
+          const packageVersion = require('./package.json').version;
+          const tauriConfig = require('./src-tauri/tauri.conf.json');
+          const tauriVersion = tauriConfig.version;
+          const cargo = fs.readFileSync('./src-tauri/Cargo.toml', 'utf8');
+          const cargoVersion = cargo.match(/^version = "([^"]+)"/m)?.[1];
+          if (!packageVersion || packageVersion !== tauriVersion || packageVersion !== cargoVersion) {
+            throw new Error(`Version mismatch: package=${packageVersion}, tauri=${tauriVersion}, cargo=${cargoVersion}`);
+          }
+          const changelog = fs.readFileSync('./CHANGELOG.md', 'utf8');
+          if (!changelog.includes(`## v${packageVersion} `)) {
+            throw new Error(`CHANGELOG.md has no v${packageVersion} section`);
+          }
+          // An unsigned or unannounced release can never be updated into, and
+          // the mistake only shows up once users are already stranded on it.
+          if (tauriConfig.bundle?.createUpdaterArtifacts !== true) {
+            throw new Error('bundle.createUpdaterArtifacts must be true to ship updates');
+          }
+          const updater = tauriConfig.plugins?.updater ?? {};
+          if (!updater.pubkey) {
+            throw new Error('plugins.updater.pubkey is missing');
+          }
+          if (!updater.endpoints?.some((url) => url.startsWith('https://'))) {
+            throw new Error('plugins.updater.endpoints must hold an HTTPS endpoint');
+          }
+          const key = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+          if (key.startsWith('sb_secret_')) {
+            throw new Error('A Supabase secret key must never be embedded in the desktop app');
+          }
+          const parts = key.split('.');
+          if (parts.length === 3) {
+            try {
+              const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+              if (payload.role === 'service_role') {
+                throw new Error('A Supabase service-role key must never be embedded in the desktop app');
+              }
+            } catch (error) {
+              if (error.message.includes('service-role')) throw error;
+            }
+          }
+          NODE
+
+      - name: Verify production API and live EUR catalog
+        shell: bash
+        run: |
+          curl --fail --show-error --silent --retry 3 "$VITE_TODOFY_API_URL/readyz"
+          CATALOG_JSON=$(curl --fail --show-error --silent --retry 3 "$VITE_TODOFY_API_URL/v1/plans")
+          CATALOG_JSON="$CATALOG_JSON" node <<'NODE'
+          const catalog = JSON.parse(process.env.CATALOG_JSON);
+          const expected = {
+            monthly: { product_id: 1362532, variant_id: 2127761, amount: 399, interval: 'month' },
+            yearly: { product_id: 1362532, variant_id: 2127785, amount: 3900, interval: 'year' },
+          };
+          if (catalog.test_mode !== false || !Array.isArray(catalog.plans) || catalog.plans.length !== 2) {
+            throw new Error('Production billing catalog is unavailable or still in test mode');
+          }
+          for (const plan of catalog.plans) {
+            const wanted = expected[plan.id];
+            if (!wanted || plan.currency !== 'EUR' || Object.entries(wanted).some(([key, value]) => plan[key] !== value)) {
+              throw new Error(`Unexpected production plan: ${JSON.stringify(plan)}`);
+            }
+            const checkout = new URL(plan.checkout_url);
+            if (checkout.protocol !== 'https:' || !(checkout.hostname === 'lemonsqueezy.com' || checkout.hostname.endsWith('.lemonsqueezy.com'))) {
+              throw new Error(`Unsafe checkout URL for ${plan.id}`);
+            }
+          }
+          NODE
+
+      - name: Install system dependencies
+        run: |
+          sudo rm -f /etc/apt/sources.list.d/*google*.list \
+                     /etc/apt/sources.list.d/*microsoft*.list
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev build-essential curl wget file \
+            libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - uses: oven-sh/setup-bun@v2
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Install locked frontend dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Audit production frontend dependencies
+        run: bun audit --production
+
+      - name: Build frontend
+        run: bun run build
+
+      - name: Test Rust backend
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml
+
+  release:
+    needs: [check, validate]
     if: needs.check.outputs.release == 'true'
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: ubuntu-22.04
-            args: ''
+            args: ""
           - platform: macos-latest
-            args: '--target universal-apple-darwin'
+            args: "--target universal-apple-darwin"
           - platform: windows-latest
-            args: ''
+            args: ""
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v5
 
       - name: Extract release notes from CHANGELOG
         shell: bash
@@ -113,30 +244,118 @@ jobs:
 
       - uses: swatinem/rust-cache@v2
         with:
-          workspaces: './src-tauri -> target'
+          workspaces: "./src-tauri -> target"
 
       - name: Install frontend dependencies
-        run: bun install
+        run: bun install --frozen-lockfile
 
       - name: Build and upload bundle
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Signs the updater artifacts. Without it the build fails, which is
+          # what we want: an unsigned release can never be updated into.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_SCHEMA: ${{ secrets.VITE_SUPABASE_SCHEMA }}
+          VITE_TODOFY_API_URL: ${{ secrets.VITE_TODOFY_API_URL }}
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           VITE_GOOGLE_CLIENT_SECRET: ${{ secrets.VITE_GOOGLE_CLIENT_SECRET }}
         with:
           tagName: v${{ needs.check.outputs.version }}
-          releaseName: 'todofy v${{ needs.check.outputs.version }}'
+          releaseName: "todofy v${{ needs.check.outputs.version }}"
           releaseBody: ${{ env.RELEASE_NOTES }}
           releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
+          # The manifest is composed once, after every platform has uploaded —
+          # three parallel jobs each merging their own copy would race.
+          includeUpdaterJson: false
+
+  # Writes the latest.json the in-app updater polls. It must land before the
+  # release leaves draft, or the first person to check would be told there is
+  # no update.
+  manifest:
+    needs: [check, validate, release]
+    if: needs.check.outputs.release == 'true'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Compose the updater manifest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.check.outputs.version }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="v$VERSION"
+
+          mkdir -p signatures
+          gh release download "$TAG" --repo "$REPO" --dir signatures --pattern '*.sig'
+
+          ASSETS=$(gh release view "$TAG" --repo "$REPO" --json assets --jq '[.assets[].name]')
+
+          ASSETS="$ASSETS" TAG="$TAG" node <<'NODE'
+          const fs = require('node:fs');
+          const { VERSION, REPO, TAG } = process.env;
+          const names = JSON.parse(process.env.ASSETS);
+
+          const url = (name) =>
+            `https://github.com/${REPO}/releases/download/${TAG}/${encodeURIComponent(name)}`;
+          const signature = (name) =>
+            fs.readFileSync(`signatures/${name}.sig`, 'utf8').trim();
+
+          // A universal macOS build serves both architectures from one archive.
+          const bundles = names.filter((name) => !name.endsWith('.sig'));
+          const wanted = {
+            'linux-x86_64': bundles.find((n) => n.endsWith('.AppImage')),
+            'darwin-x86_64': bundles.find((n) => n.endsWith('.app.tar.gz')),
+            'darwin-aarch64': bundles.find((n) => n.endsWith('.app.tar.gz')),
+            'windows-x86_64':
+              bundles.find((n) => n.endsWith('-setup.exe')) ??
+              bundles.find((n) => n.endsWith('.msi')),
+          };
+
+          const missing = Object.entries(wanted).filter(([, name]) => !name);
+          if (missing.length) {
+            throw new Error(
+              `No updater artifact for: ${missing.map(([key]) => key).join(', ')}`,
+            );
+          }
+
+          const platforms = {};
+          for (const [key, name] of Object.entries(wanted)) {
+            platforms[key] = { signature: signature(name), url: url(name) };
+          }
+
+          fs.writeFileSync(
+            'latest.json',
+            JSON.stringify(
+              {
+                version: VERSION,
+                // Deliberately a pointer rather than the changelog section:
+                // every client fetches this file, and the app links out to
+                // the release page for the details.
+                notes: `todofy v${VERSION} — https://github.com/${REPO}/releases/tag/${TAG}`,
+                pub_date: new Date().toISOString(),
+                platforms,
+              },
+              null,
+              2,
+            ),
+          );
+          console.log(`latest.json for v${VERSION}:`);
+          console.log(Object.keys(platforms).join(', '));
+          NODE
+
+          gh release upload "$TAG" latest.json --repo "$REPO" --clobber
 
   publish:
-    needs: [check, release]
+    needs: [check, validate, release, manifest]
     if: needs.check.outputs.release == 'true'
     runs-on: ubuntu-22.04
     steps:

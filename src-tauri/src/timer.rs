@@ -181,7 +181,11 @@ fn stop_tracking(conn: &Connection) -> rusqlite::Result<()> {
 /// Below, the DB connection is always dropped (block-scoped) before
 /// `tray::refresh`, which locks it again — held across that call, it deadlocks.
 #[tauri::command]
-pub fn start_timer(app: AppHandle, db: State<Db>, id: String) -> Result<Option<ActiveTimer>, String> {
+pub fn start_timer(
+    app: AppHandle,
+    db: State<Db>,
+    id: String,
+) -> Result<Option<ActiveTimer>, String> {
     let active = {
         let conn = db.conn();
         start_tracking(&conn, &id).map_err(|e| e.to_string())?;

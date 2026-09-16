@@ -1,5 +1,6 @@
 import { useEffect } from "preact/hooks";
 import { useStore, visibleTaskIds } from "../store";
+import { useOnboarding } from "./onboarding";
 
 function isEditable(el: EventTarget | null): boolean {
   if (!(el instanceof HTMLElement)) return false;
@@ -30,6 +31,9 @@ function focusById(id: string) {
 export function useKeyboard() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // The first-run tour drives its own keys and owns the screen.
+      if (useOnboarding.getState().open) return;
+
       const editing = isEditable(e.target);
 
       if (editing) {

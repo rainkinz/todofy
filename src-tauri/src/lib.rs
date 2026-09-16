@@ -14,6 +14,7 @@ mod settings;
 mod sync;
 mod timer;
 mod tray;
+mod update;
 
 use db::Db;
 use rusqlite::Connection;
@@ -49,6 +50,11 @@ pub fn run() {
             }
         }))
         .plugin(tauri_plugin_deep_link::init())
+        .plugin(tauri_plugin_http::init())
+        // Signed self-update, checked from the frontend. `process` is what
+        // restarts the app into the version that was just installed.
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
         // Launch-on-login. The registered command carries AUTOSTART_FLAG so the
@@ -116,7 +122,6 @@ pub fn run() {
             {
                 let _ = app.deep_link().register_all();
             }
-
             // Start the reminder scheduler.
             scheduler::spawn(app.handle().clone());
 
@@ -204,6 +209,9 @@ pub fn run() {
             calendar::calendar_link_set,
             calendar::calendar_link_remove,
             calendar::calendar_clear_links,
+            update::can_self_update,
+            update::notify_update,
+            popup::notify_popup_open_update,
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")

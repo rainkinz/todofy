@@ -12,7 +12,11 @@ import {
   CaretRightIcon,
   CheckCircleIcon as PhCheckCircleIcon,
   CheckIcon as PhCheckIcon,
+  CloudIcon as PhCloudIcon,
+  CrownSimpleIcon,
+  DevicesIcon as PhDevicesIcon,
   DotsSixVerticalIcon,
+  DownloadSimpleIcon,
   EyeIcon as PhEyeIcon,
   EyeSlashIcon,
   FlagIcon as PhFlagIcon,
@@ -20,6 +24,7 @@ import {
   GithubLogoIcon,
   GlobeSimpleIcon,
   HourglassMediumIcon,
+  KeyIcon as PhKeyIcon,
   LightningIcon,
   ListIcon as PhListIcon,
   MagnifyingGlassIcon,
@@ -33,6 +38,7 @@ import {
   PowerIcon as PhPowerIcon,
   PushPinIcon,
   RepeatIcon as PhRepeatIcon,
+  ShieldCheckIcon as PhShieldCheckIcon,
   SkipForwardIcon,
   StopIcon as PhStopIcon,
   SunIcon as PhSunIcon,
@@ -109,6 +115,12 @@ export const ExternalLinkIcon = icon(ArrowSquareOutIcon);
 export const GitHubIcon = icon(GithubLogoIcon);
 export const WebsiteIcon = icon(GlobeSimpleIcon);
 export const MenuIcon = icon(PhListIcon);
+export const CloudIcon = icon(PhCloudIcon);
+export const CrownIcon = icon(CrownSimpleIcon);
+export const DevicesIcon = icon(PhDevicesIcon);
+export const DownloadIcon = icon(DownloadSimpleIcon);
+export const KeyIcon = icon(PhKeyIcon);
+export const ShieldCheckIcon = icon(PhShieldCheckIcon);
 
 /** The original Todofy app icon, reused as the product mark. */
 export const Logo = ({ size = 28 }: { size?: number }) => (
@@ -124,6 +136,24 @@ export const GoogleIcon = ({ width, height }: P) => {
       <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
       <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.97-6.19z" />
       <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+    </svg>
+  );
+};
+
+/** Lemon Squeezy's mark, used only beside provider-hosted billing actions. */
+export const LemonSqueezyIcon = ({ width, height, class: className, ...rest }: P) => {
+  const size = Number(width ?? height ?? 18);
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+      class={className}
+      {...rest}
+    >
+      <path d="M9.63 14.28 15 16.76c.66.31 1.13.82 1.39 1.42.64 1.5-.24 3.03-1.61 3.58-1.38.55-2.84.2-3.51-1.36l-2.33-5.47c-.18-.42.27-.84.7-.64Zm.32-1.61 5.54-2.09c1.84-.7 3.85.62 3.82 2.53v.08c-.04 1.86-1.99 3.11-3.79 2.46l-5.56-2.04a.498.498 0 0 1 0-.94Zm-.31-.73 5.44-2.31c1.81-.77 2.27-3.08.85-4.41-.02-.02-.04-.03-.06-.05-1.39-1.29-3.69-.84-4.48.86l-2.44 5.25c-.19.42.25.85.68.66Zm-1.4-.91 1.98-5.43c.25-.67.2-1.36-.05-1.95-.64-1.5-2.38-1.98-3.76-1.43S4.26 4.03 4.93 5.59l2.35 5.47c.18.42.81.41.97-.03Z" />
     </svg>
   );
 };

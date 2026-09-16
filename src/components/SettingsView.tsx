@@ -32,6 +32,8 @@ import { formatTime } from "../lib/dates";
 import { Checkbox } from "./Checkbox";
 import { TimeField } from "./TimeField";
 import { useStore } from "../store";
+import { useOnboarding } from "../lib/onboarding";
+import { RELEASES_URL, useUpdater } from "../lib/updater";
 import type { TaskTimerMode } from "../types";
 import { AccountSection } from "./AccountSection";
 import { CalendarSection } from "./CalendarSection";
@@ -40,15 +42,18 @@ import {
   BoltIcon,
   CheckCircleIcon,
   CloseIcon,
+  DownloadIcon,
   ExternalLinkIcon,
   GitHubIcon,
   MoonIcon,
+  PlayIcon,
   PowerIcon,
   SunIcon,
+  RotateIcon,
   WebsiteIcon,
 } from "./Icons";
 
-const WEBSITE_URL = "https://unifybrowse.com/";
+const WEBSITE_URL = "https://unifybrowse.com/products/todofy";
 const GITHUB_URL = "https://github.com/salarzeidanlou/todofy";
 
 const openExternal = (url: string) => {
@@ -120,6 +125,8 @@ export function SettingsView() {
     taskTimerMode,
     setTaskTimerMode,
   } = useStore();
+  const autoCheckUpdates = useUpdater((s) => s.autoCheck);
+  const setAutoCheckUpdates = useUpdater((s) => s.setAutoCheck);
   // Read back from the locale module, which the store actions keep in step.
   const timeFormatPref = timeFormat();
   const weekStartPref = weekStartSetting();
@@ -751,8 +758,37 @@ export function SettingsView() {
           </Row>
         </Section>
 
+        {/* Updates */}
+        <Section title="Updates">
+          <UpdateRow version={version} />
+          <div class="border-t border-[var(--color-border)]" />
+          <Row
+            icon={<RotateIcon width={18} height={18} />}
+            title="Check automatically"
+            desc="Look for a new version quietly once a day, and say so when one is found."
+          >
+            <Switch
+              checked={autoCheckUpdates}
+              onChange={() => void setAutoCheckUpdates(!autoCheckUpdates)}
+            />
+          </Row>
+        </Section>
+
         {/* About */}
         <Section title="About">
+          <Row
+            icon={<PlayIcon width={18} height={18} />}
+            title="Replay the welcome tour"
+            desc="Walk through capture, focus and reminders again."
+          >
+            <button
+              onClick={() => useOnboarding.getState().start()}
+              class="shrink-0 rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+            >
+              Show tour
+            </button>
+          </Row>
+          <div class="border-t border-[var(--color-border)]" />
           <Row
             icon={<WebsiteIcon width={18} height={18} />}
             title="Todofy website"
@@ -786,6 +822,115 @@ export function SettingsView() {
         </Section>
       </div>
     </main>
+  );
+}
+
+/**
+ * The whole update story in one row: what is installed, what is available,
+ * how far a download has got, and the one action that makes sense next.
+ */
+function UpdateRow({ version }: { version: string }) {
+  const { state, version: next, error, downloaded, total, canSelfUpdate } =
+    useUpdater();
+  const check = useUpdater((s) => s.check);
+  const install = useUpdater((s) => s.install);
+  const restart = useUpdater((s) => s.restart);
+
+  const percent = total > 0 ? Math.min(100, Math.round((downloaded / total) * 100)) : 0;
+
+  const desc =
+    state === "checking"
+      ? "Looking for a new version…"
+      : state === "available"
+        ? canSelfUpdate
+          ? `todofy v${next} is ready to download.`
+          : `todofy v${next} is out. This copy was installed by your package manager, so update it from there or grab the new bundle.`
+        : state === "downloading"
+          ? total > 0
+            ? `Downloading v${next}… ${percent}%`
+            : `Downloading v${next}…`
+          : state === "ready"
+            ? `v${next} is installed. Restart to start using it.`
+            : state === "error"
+              ? (error ?? "The update failed.")
+              : version
+                ? `You're up to date on v${version}.`
+                : "Check whether a newer version is available.";
+
+  return (
+    <div class="px-4 py-3.5">
+      <div class="flex items-center gap-3">
+        <span
+          class={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${
+            state === "available" || state === "ready"
+              ? "bg-[var(--color-accent-soft)] text-[var(--color-accent)]"
+              : "bg-[var(--color-surface-2)] text-[var(--color-muted)]"
+          }`}
+        >
+          <DownloadIcon width={18} height={18} />
+        </span>
+        <div class="min-w-0 flex-1">
+          <p class="text-sm font-medium text-[var(--color-text)]">Software update</p>
+          <p
+            class={`mt-0.5 text-xs ${
+              state === "error" ? "text-[var(--color-danger)]" : "text-[var(--color-muted)]"
+            }`}
+          >
+            {desc}
+          </p>
+        </div>
+        <div class="shrink-0">
+          {state === "ready" ? (
+            <button
+              onClick={() => void restart()}
+              class="rounded-lg bg-[var(--color-accent)] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)]"
+            >
+              Restart now
+            </button>
+          ) : state === "available" ? (
+            <button
+              onClick={() => void install()}
+              class="rounded-lg bg-[var(--color-accent)] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)]"
+            >
+              {canSelfUpdate ? "Download and install" : "Open releases"}
+            </button>
+          ) : (
+            <button
+              onClick={() => void check(true)}
+              disabled={state === "checking" || state === "downloading"}
+              class="rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)] disabled:opacity-50"
+            >
+              {state === "checking"
+                ? "Checking…"
+                : state === "downloading"
+                  ? "Downloading…"
+                  : state === "error"
+                    ? "Try again"
+                    : "Check now"}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {state === "downloading" && (
+        <div class="mt-3 h-1 overflow-hidden rounded-full bg-[var(--color-surface-2)]">
+          <div
+            class="h-full rounded-full bg-[var(--color-accent)] transition-[width] duration-200"
+            style={{ width: total > 0 ? `${percent}%` : "35%" }}
+          />
+        </div>
+      )}
+
+      {(state === "available" || state === "ready") && (
+        <button
+          onClick={() => openExternal(RELEASES_URL)}
+          class="mt-2 inline-flex items-center gap-1.5 text-[11px] font-medium text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]"
+        >
+          See what's new in v{next}
+          <ExternalLinkIcon width={11} height={11} />
+        </button>
+      )}
+    </div>
   );
 }
 

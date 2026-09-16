@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
-import { BellIcon, CloseIcon } from "./Icons";
+import { BellIcon, CloseIcon, DownloadIcon } from "./Icons";
 
 interface NotifyPayload {
   nonce: number;
+  kind: "reminder" | "update";
   title: string;
   body: string;
   task_id: string | null;
@@ -78,9 +79,15 @@ export function NotificationPopup() {
 
   const open = () => {
     clearTimer();
+    const update = note?.kind === "update";
     acknowledge();
     const id = note?.task_id ?? null;
     setNote(null);
+    // An update notice opens the update controls; a reminder opens its task.
+    if (update) {
+      invoke("notify_popup_open_update").catch(() => {});
+      return;
+    }
     invoke("notify_popup_open", { taskId: id }).catch(() => {});
   };
 
@@ -121,10 +128,16 @@ export function NotificationPopup() {
         <div class="notification-accent" />
         <div class="notification-content">
           <span class="notification-icon">
-            <BellIcon width={19} height={19} />
+            {note.kind === "update" ? (
+              <DownloadIcon width={19} height={19} />
+            ) : (
+              <BellIcon width={19} height={19} />
+            )}
           </span>
           <div class="notification-copy">
-            <div class="notification-eyebrow">Reminder · now</div>
+            <div class="notification-eyebrow">
+              {note.kind === "update" ? "Update available" : "Reminder · now"}
+            </div>
             <p class="notification-title">{note.title}</p>
             <p class="notification-body">{note.body}</p>
             {note.task_id && (

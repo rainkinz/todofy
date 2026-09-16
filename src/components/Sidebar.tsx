@@ -4,17 +4,22 @@ import { useStore } from "../store";
 import type { ViewId } from "../types";
 import { toLocalDate, today } from "../lib/dates";
 import { weekdayOffset } from "../lib/locale";
+import { billingConfigured, useBilling } from "../lib/billing";
+import { useUpdater } from "../lib/updater";
 import {
   CalendarIcon,
   CheckCircleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  DownloadIcon,
   InboxIcon,
   JournalIcon,
   LabelIcon,
   Logo,
   MenuIcon,
   PinIcon,
+  CrownIcon,
+  RotateIcon,
   SettingsIcon,
   TimerIcon,
   TodayIcon,
@@ -42,7 +47,18 @@ export function sameView(a: ViewId, b: ViewId): boolean {
 /** Top-level product navigation from the selected redesign. */
 export function Sidebar() {
   const { view, setView, sidebarCollapsed, toggleSidebar } = useStore();
+  const billingAllowed = useBilling((state) => state.allowed);
+  const openPro = useBilling((state) => state.openGate);
+  const updateState = useUpdater((state) => state.state);
+  const updateVersion = useUpdater((state) => state.version);
+  const updateDismissed = useUpdater((state) => state.dismissedVersion);
   const [version, setVersion] = useState("");
+
+  // Only worth a permanent seat in the top bar once there's something to do
+  // about it, and only until the user has waved that version away.
+  const showUpdate =
+    (updateState === "available" || updateState === "downloading" || updateState === "ready") &&
+    updateDismissed !== updateVersion;
 
   useEffect(() => {
     getVersion()
@@ -98,6 +114,43 @@ export function Sidebar() {
       </nav>
 
       <div class="top-actions">
+        {/* Icon-only on purpose: the top bar is already tight at narrow widths,
+            and the full story lives one click away in Settings. */}
+        {showUpdate && (
+          <button
+            type="button"
+            onClick={() => navigate({ kind: "settings" })}
+            class="top-nav-item top-update"
+            aria-label={
+              updateState === "ready"
+                ? `todofy v${updateVersion} is installed — restart to use it`
+                : `todofy v${updateVersion} is available`
+            }
+            title={
+              updateState === "ready"
+                ? `Restart to finish updating to v${updateVersion}`
+                : `todofy v${updateVersion} is available`
+            }
+          >
+            {updateState === "ready" ? (
+              <RotateIcon width={20} height={20} />
+            ) : (
+              <DownloadIcon width={20} height={20} />
+            )}
+          </button>
+        )}
+        {billingConfigured && (
+          <button
+            type="button"
+            onClick={() => openPro(billingAllowed ? "upgrade" : "cloud_sync")}
+            class={`top-nav-item top-pro ${billingAllowed ? "is-active" : ""}`}
+            aria-label={billingAllowed ? "Todofy Pro status" : "Unlock Cloud Sync"}
+            title={billingAllowed ? "Todofy Pro" : "Cloud Sync"}
+          >
+            <CrownIcon width={20} height={20} />
+            <span>{billingAllowed ? "Pro" : "Cloud Sync"}</span>
+          </button>
+        )}
         <button
           type="button"
           onClick={() => navigate({ kind: "focus" })}

@@ -1,5 +1,38 @@
 # Changelog
 
+## v1.11.0 — 2026-09-16
+
+### Added
+
+- **Todofy Pro** — official Cloud Sync is now available for **€3.99/month or €39/year**, with a calm in-app paywall that explains what stays free and what Pro adds
+- **Browser checkout and license activation** — choose monthly or yearly billing, complete checkout securely in Lemon Squeezy, then return to Todofy and activate the emailed license on the intended account. Existing unclaimed licenses can be activated after signing in
+- **Subscription status and management** — Settings shows the current plan, access state, and paid-through date, with a secure link to the Lemon Squeezy customer portal
+- **Account-first or purchase-first setup** — customers can create an account before checkout or purchase first and connect the license afterwards
+- **A welcome tour on first run.** A fresh install now opens with a short seven-step introduction instead of an empty list: pick a theme and watch the app change behind it, write your first task in plain language and see the date, time, priority and repeat lift out of the sentence as you type, set a focus session length, switch on notifications and start-at-login, and meet the journal, calendar, labels and repeats. Every step does the real thing — the theme, the timer length, the permissions and the first task are all genuinely set by the time you reach the end. An install that already holds tasks is never shown the tour, and it can be replayed anytime from **Settings → About**
+- **Todofy updates itself.** New versions are checked for quietly once a day. When one turns up you get a notification — the same corner popup or system notification your reminders use, so the news reaches you even with todofy sitting in the tray — and clicking it opens the update controls. A marker also appears in the top bar while an update is waiting. **Settings → Updates** shows what's available, downloads it with a progress bar, and restarts into it when you're ready; automatic checking can be switched off there, and **Check now** is always available. You're told about a given version once, not every day, and turning desktop notifications off turns this off too. Every update is cryptographically signed at release time and verified before it is installed, so a tampered or unofficial bundle is refused. A `.deb` or `.rpm` install is owned by your package manager, so those are pointed at the release page rather than replaced behind your back — the AppImage, macOS and Windows builds update in place
+
+### Changed
+
+- Official hosted Cloud Sync now checks the account's server-verified entitlement before manual and scheduled synchronization. Local tasks, calendars, timers, reminders, and Google Calendar integration remain available without Pro
+- Sign-in and account creation have moved into a focused authentication dialog, while the Account section now presents sync, subscription, activation, and deletion states more clearly
+- Cloud pulls use one database RPC snapshot so related tasks, labels, sessions, journal entries, and deletion markers share a consistent server watermark
+- Supabase traffic now uses Tauri's native HTTP transport, avoiding unnecessary browser CORS preflights while keeping requests limited to Supabase hosts
+- Background sync progressively backs off while no data changes and slows to a quiet tray cadence when Todofy is hidden; local edits and returning to the app still trigger prompt synchronization
+- The release pipeline now requires exact production configuration, the live EUR catalog, locked dependency installation, a frontend build, a production dependency audit, and the Rust test suite before packaging can begin
+
+### Fixed
+
+- **The top bar no longer draws over itself at middling window widths.** Across a band of window sizes the page links (_Today_ through _Journal_) and the buttons on the right were both laid out as though they had the room, so the two groups ended up drawn on top of each other and their labels became an unreadable pile. The labelled bar now appears only at widths that genuinely fit it, and below that it's icons-only — as it already was on narrower windows. If the labels ever outgrow the space anyway, on a system with a larger interface font for instance, the links scroll within their own strip instead of spilling across the buttons beside them
+- GitHub CI and release workflows now use the current supported checkout action and locked dependencies, preventing invalid action versions or dependency drift from breaking validation and packaging
+- Cancelling, expiring, refunding, or revoking a subscription now pauses Cloud Sync when access ends instead of leaving a previously verified client syncing indefinitely
+- Sync rechecks entitlement revisions before advancing its watermark, preventing access changes during a sync from being recorded as a successful authorized cycle
+- Account deletion now coordinates subscription cancellation with the private billing service before deleting the Supabase user, and fails closed when cancellation cannot be confirmed
+
+### Security
+
+- Pro access is derived from authenticated server responses with bounded cache lifetimes; license keys are submitted only for activation and are not persisted, while Lemon Squeezy credentials and the Supabase service-role key remain server-side
+- External URL permissions are limited to Todofy's website, repository, and Lemon Squeezy instead of allowing every HTTP or HTTPS destination
+
 ## v1.10.2 — 2026-09-13
 
 ### Fixed
@@ -104,8 +137,6 @@
 ### Fixed
 
 - Account sync no longer fails with `insert or update on table "task_labels" violates foreign key constraint "task_labels_label_id_fkey"`. A label whose `updated_at` sat at or below the sync watermark (already synced, or stamped there when an older database was migrated) was skipped on push, yet assigning it to a task pushed the association — which then referenced a label the server had never seen. A changed association now carries its parent task and label along in the same push, so a child never lands ahead of its parent
-
-
 
 ### Fixed
 

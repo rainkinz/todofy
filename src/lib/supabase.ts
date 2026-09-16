@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { fetch as nativeFetch } from "@tauri-apps/plugin-http";
 import { secureStorage } from "./secureStorage";
 
 // Sync is opt-in: the URL and publishable key are injected at build time from
@@ -24,4 +25,7 @@ export const supabase = createClient(url || "http://localhost", anonKey || "anon
   // Open-source deployments use `public` by default. A private deployment can
   // select an app-specific schema through its uncommitted local environment.
   db: { schema: import.meta.env.VITE_SUPABASE_SCHEMA || "public" },
+  // Tauri's native fetch has no origin, so requests skip the CORS preflight
+  // that otherwise doubles their count. Scoped in `capabilities/default.json`.
+  global: { fetch: nativeFetch as unknown as typeof fetch },
 });

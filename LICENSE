@@ -1,29 +1,63 @@
+Todofy Source-Available License
 Copyright (c) 2026 Salar Zeidanlou
 
-All rights reserved.
+Todofy (the "Software") is owned and maintained by Salar Zeidanlou (the
+"Author"). The Software is source-available, not open source: the source is
+published so that anyone may read it, audit it, build it for their own use, and
+propose improvements. The Author retains full ownership of and all rights in the
+Software except for the limited permissions granted below.
 
-This software and its source code (the "Software") are owned and maintained by
-Salar Zeidanlou (the "Author"). The source is made publicly available so that
-others may view it and propose improvements.
+1. USING THE OFFICIAL BUILDS
+You may download, install, and run the official Todofy binaries published by the
+Author, on any number of devices you own or control, for personal or internal
+business purposes, free of charge. You may make backup copies for your own use.
 
-CONTRIBUTIONS
-You are welcome to submit contributions to the Software, for example via pull
-requests or issues. By submitting a contribution, you grant the Author a
-perpetual, worldwide, irrevocable, royalty-free license to use, modify,
-sublicense, and distribute your contribution as part of the Software, and you
-represent that you have the right to grant this license. The Author remains the
-owner of the Software as a whole.
+2. BUILDING AND RUNNING FROM SOURCE
+You may copy this repository, build the Software, and run the result for
+personal or internal business purposes, including against a sync backend you
+operate yourself. You may modify your own build for those purposes. This
+permission is for your own use only; it does not allow you to distribute your
+build or your modifications to anyone else.
 
-RESTRICTIONS
-Except for submitting contributions as described above, no permission is granted
-to use, copy, modify, merge, publish, distribute, sublicense, or sell copies of
-the Software, in whole or in part, nor to create derivative works or to run the
-Software for any purpose, without the prior express written permission of the
-Author. The Author retains full ownership of and all rights in the Software.
+3. CONTRIBUTIONS
+You are welcome to submit contributions, for example via pull requests or
+issues. By submitting a contribution, you grant the Author a perpetual,
+worldwide, irrevocable, royalty-free license to use, modify, sublicense, and
+distribute your contribution as part of the Software, and you represent that you
+have the right to grant this license. The Author remains the owner of the
+Software as a whole.
 
+4. RESTRICTIONS
+Except as expressly permitted above, you may not:
+  (a) distribute, publish, sublicense, sell, rent, or lease the Software, any
+      modified version of it, or any substantial portion of its source code;
+  (b) offer the Software, or a derivative of it, to third parties as a hosted,
+      managed, or commercial service;
+  (c) remove, disable, or circumvent any license-key check, subscription check,
+      entitlement check, or usage limitation in the Software, or help others do
+      so, in order to obtain a paid feature without a valid subscription;
+  (d) use the name "Todofy", the Author's name, or the Todofy logo to endorse,
+      promote, or brand any product or service, except to refer accurately to
+      the Software itself.
+Any other use requires the prior express written permission of the Author.
+
+5. PAID FEATURES AND HOSTED SERVICES
+Todofy Cloud Sync and any other paid feature are optional services operated by
+the Author. They are not granted by this license; access to them is governed by
+their own subscription terms and privacy policy. Nothing in this license
+entitles you to use those services, and nothing in those terms enlarges the
+permissions granted here.
+
+6. TERMINATION
+The permissions in sections 1 and 2 terminate automatically if you breach this
+license. They are reinstated if you cure the breach within 30 days of becoming
+aware of it.
+
+7. NO WARRANTY
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN
 ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. Nothing in this
+license limits liability that cannot be limited under applicable law.

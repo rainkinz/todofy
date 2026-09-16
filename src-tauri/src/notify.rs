@@ -10,6 +10,7 @@
 //! corner popup window (see [`crate::popup`]).
 
 use crate::db::Db;
+use crate::popup::PopupKind;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_notification::NotificationExt;
 
@@ -17,7 +18,7 @@ use tauri_plugin_notification::NotificationExt;
 /// chosen style. `task_id` lets the custom popup open the right task on click.
 /// Best-effort.
 pub fn send(app: &AppHandle, title: &str, body: &str, task_id: Option<String>) {
-    let _ = deliver(app, title, body, task_id);
+    let _ = deliver(app, PopupKind::Reminder, title, body, task_id);
 }
 
 /// Like [`send`] but reports which path delivered it: `"popup"` (custom
@@ -25,6 +26,7 @@ pub fn send(app: &AppHandle, title: &str, body: &str, task_id: Option<String>) {
 /// Used by the Settings test button so the user sees how it was routed.
 pub fn deliver(
     app: &AppHandle,
+    kind: PopupKind,
     title: &str,
     body: &str,
     task_id: Option<String>,
@@ -35,7 +37,7 @@ pub fn deliver(
         crate::settings::notification_style(&conn)
     };
     if style != "native" {
-        crate::popup::show(app, title, body, task_id);
+        crate::popup::show_kind(app, kind, title, body, task_id);
         return Ok("popup");
     }
 
@@ -57,6 +59,7 @@ pub fn deliver(
 pub fn send_test_notification(app: AppHandle) -> Result<String, String> {
     deliver(
         &app,
+        PopupKind::Reminder,
         "todofy test notification",
         "If you can see this, desktop notifications are working.",
         None,

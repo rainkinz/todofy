@@ -1,23 +1,15 @@
 import { useEffect, useState } from "preact/hooks";
-import { useAuth } from "../lib/auth";
+import { useAuth, type AuthResult } from "../lib/auth";
 import { useSync, type SyncStatus } from "../lib/sync";
 import { syncConfigured } from "../lib/supabase";
-import { CloseIcon, EyeIcon, EyeOffIcon, GoogleIcon, TrashIcon, UserIcon } from "./Icons";
+import { billingConfigured, useBilling } from "../lib/billing";
+import { CloudIcon, CrownIcon, TrashIcon, UserIcon } from "./Icons";
 import { Checkbox } from "./Checkbox";
 
-type Mode = "signin" | "signup";
-
 export function AccountSection() {
-  const { ready, session, email, signIn, signUp, signInWithGoogle, signOut, deleteAccount } =
-    useAuth();
-  const [modalOpen, setModalOpen] = useState(false);
+  const { ready, session, email, openDialog, signOut, deleteAccount } = useAuth();
+  const { openGate } = useBilling();
 
-  // Google sign-in lands a session asynchronously, so close the modal on it.
-  useEffect(() => {
-    if (session) setModalOpen(false);
-  }, [session]);
-
-  // Builds without a configured Supabase project ship with sync disabled.
   if (!syncConfigured) {
     return (
       <section class="mb-6">
@@ -42,44 +34,58 @@ export function AccountSection() {
         {!ready ? (
           <div class="px-4 py-3.5 text-sm text-[var(--color-muted)]">Loading…</div>
         ) : session ? (
-          <SignedInRow email={email} onSignOut={signOut} deleteAccount={deleteAccount} />
+          <SignedInRow
+            email={email}
+            onSignOut={signOut}
+            deleteAccount={deleteAccount}
+          />
         ) : (
-          <SignInRow onSignIn={() => setModalOpen(true)} />
+          <SignInRow
+            onSignIn={() => openDialog("account")}
+            onExplorePro={() => openGate("upgrade")}
+          />
         )}
       </div>
-
-      {modalOpen && (
-        <AuthModal
-          signIn={signIn}
-          signUp={signUp}
-          signInWithGoogle={signInWithGoogle}
-          onClose={() => setModalOpen(false)}
-        />
-      )}
     </section>
   );
 }
 
-function SignInRow({ onSignIn }: { onSignIn: () => void }) {
+function SignInRow({
+  onSignIn,
+  onExplorePro,
+}: {
+  onSignIn: () => void;
+  onExplorePro: () => void;
+}) {
   return (
     <div class="flex items-center gap-3 px-4 py-3.5">
       <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[var(--color-surface-2)] text-[var(--color-muted)]">
         <UserIcon width={18} height={18} />
       </span>
       <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium text-[var(--color-text)]">
-          Sign in to sync
-        </p>
+        <p class="text-sm font-medium text-[var(--color-text)]">Cloud Sync account</p>
         <p class="mt-0.5 text-xs text-[var(--color-muted)]">
-          Keep your tasks in sync across all your devices.
+          Local Todofy stays free. Sign in when you want Pro sync.
         </p>
       </div>
-      <button
-        onClick={onSignIn}
-        class="shrink-0 rounded-lg bg-[var(--color-accent)] px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)]"
-      >
-        Sign in
-      </button>
+      <div class="flex shrink-0 gap-2">
+        {billingConfigured && (
+          <button
+            type="button"
+            onClick={onExplorePro}
+            class="rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent-soft)]"
+          >
+            View Pro
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={onSignIn}
+          class="rounded-lg bg-[var(--color-accent)] px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)]"
+        >
+          Sign in
+        </button>
+      </div>
     </div>
   );
 }
@@ -91,7 +97,7 @@ function SignedInRow({
 }: {
   email: string | null;
   onSignOut: () => Promise<void>;
-  deleteAccount: (wipeLocal: boolean) => Promise<{ ok: boolean; error?: string }>;
+  deleteAccount: (wipeLocal: boolean) => Promise<AuthResult>;
 }) {
   const [busy, setBusy] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -106,10 +112,11 @@ function SignedInRow({
             {email ?? "Signed in"}
           </p>
           <p class="mt-0.5 text-xs text-[var(--color-muted)]">
-            Signed in — your tasks are linked to this account.
+            This is the account your license and cloud data belong to.
           </p>
         </div>
         <button
+          type="button"
           onClick={async () => {
             setBusy(true);
             try {
@@ -124,12 +131,14 @@ function SignedInRow({
           {busy ? "Signing out…" : "Sign out"}
         </button>
       </div>
+      {billingConfigured && <CloudSyncPlanRow />}
       <SyncStatusRow />
       <div class="flex items-center justify-between gap-3 border-t border-[var(--color-border)] px-4 py-3">
         <p class="text-xs text-[var(--color-muted)]">
-          Permanently delete your account and cloud data.
+          Delete your account, cloud data, and cancel linked billing.
         </p>
         <button
+          type="button"
           onClick={() => setDeleteOpen(true)}
           class="shrink-0 rounded-lg border border-[var(--color-danger)]/40 px-3 py-1.5 text-xs font-medium text-[var(--color-danger)] transition-colors hover:bg-[var(--color-danger)]/10"
         >
@@ -146,40 +155,79 @@ function SignedInRow({
   );
 }
 
+function CloudSyncPlanRow() {
+  const { state, allowed, plan, validUntil, openGate } = useBilling();
+  const title = state === "checking"
+    ? "Checking Todofy Pro…"
+    : state === "cancelled_active"
+      ? "Subscription cancelled"
+      : state === "grace"
+        ? "Payment issue — temporary access"
+        : allowed
+          ? plan === "transition" ? "Cloud Sync transition access" : "Todofy Pro active"
+      : state === "unavailable" ? "Could not verify Todofy Pro" : "Cloud Sync needs Todofy Pro";
+  const formattedEnd = validUntil ? new Date(validUntil).toLocaleDateString() : null;
+  const detail = state === "cancelled_active" && formattedEnd
+    ? `Renewal is off. Cloud Sync remains available through ${formattedEnd}.`
+    : state === "grace" && formattedEnd
+      ? `Update your billing details. Temporary access ends ${formattedEnd}.`
+      : allowed && formattedEnd
+        ? `Access verified through ${formattedEnd}.`
+        : "€3.99 monthly or €39 yearly. You can also activate an existing license.";
+
+  return (
+    <div class="flex items-center gap-3 border-t border-[var(--color-border)] px-4 py-3.5">
+      <span class={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${allowed ? "bg-[var(--color-accent-soft)] text-[var(--color-accent)]" : "bg-[var(--color-surface-2)] text-[var(--color-muted)]"}`}>
+        {allowed ? <CrownIcon width={18} height={18} /> : <CloudIcon width={18} height={18} />}
+      </span>
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-medium text-[var(--color-text)]">{title}</p>
+        <p class="mt-0.5 text-xs text-[var(--color-muted)]">{detail}</p>
+      </div>
+      <button
+        type="button"
+        onClick={() => openGate(allowed ? "upgrade" : "license")}
+        class="shrink-0 rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-accent)] transition-colors hover:bg-[var(--color-accent-soft)]"
+      >
+        {allowed ? "View plan" : "Unlock sync"}
+      </button>
+    </div>
+  );
+}
+
 const STATUS_META: Record<SyncStatus, { dot: string; label: string }> = {
   idle: { dot: "bg-[var(--color-success)]", label: "Synced" },
   syncing: { dot: "bg-[var(--color-warning)]", label: "Syncing…" },
   offline: { dot: "bg-[var(--color-faint)]", label: "Offline — will retry" },
   error: { dot: "bg-[var(--color-danger)]", label: "Sync failed" },
+  paused: { dot: "bg-[var(--color-faint)]", label: "Cloud Sync paused" },
 };
 
 function SyncStatusRow() {
   const { status, lastSyncedAt, error, syncNow } = useSync();
+  const { allowed, openGate } = useBilling();
   const meta = STATUS_META[status];
-  const detail =
-    status === "error"
-      ? error ?? "Something went wrong."
-      : status === "idle" && !lastSyncedAt
-        ? "Not synced yet"
-        : lastSyncedAt
-          ? `Last synced ${relativeTime(lastSyncedAt)}`
-          : "";
+  const gated = billingConfigured && !allowed;
+  const detail = status === "error" || status === "paused"
+    ? error ?? (gated ? "Activate Todofy Pro to begin syncing." : "Something went wrong.")
+    : status === "idle" && !lastSyncedAt
+      ? "Not synced yet"
+      : lastSyncedAt ? `Last synced ${relativeTime(lastSyncedAt)}` : "";
 
   return (
     <div class="flex items-center gap-3 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
       <span class={`h-2 w-2 shrink-0 rounded-full ${meta.dot}`} />
       <div class="min-w-0 flex-1">
         <p class="text-xs font-medium text-[var(--color-text)]">{meta.label}</p>
-        {detail && (
-          <p class="mt-0.5 truncate text-[11px] text-[var(--color-muted)]">{detail}</p>
-        )}
+        {detail && <p class="mt-0.5 truncate text-[11px] text-[var(--color-muted)]">{detail}</p>}
       </div>
       <button
-        onClick={() => void syncNow()}
+        type="button"
+        onClick={() => gated ? openGate("cloud_sync") : void syncNow(true)}
         disabled={status === "syncing"}
         class="shrink-0 rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)] disabled:opacity-50"
       >
-        {status === "syncing" ? "Syncing…" : "Sync now"}
+        {status === "syncing" ? "Syncing…" : gated ? "Unlock sync" : "Sync now"}
       </button>
     </div>
   );
@@ -200,7 +248,7 @@ function DeleteAccountModal({
   deleteAccount,
   onClose,
 }: {
-  deleteAccount: (wipeLocal: boolean) => Promise<{ ok: boolean; error?: string }>;
+  deleteAccount: (wipeLocal: boolean) => Promise<AuthResult>;
   onClose: () => void;
 }) {
   const [wipeLocal, setWipeLocal] = useState(false);
@@ -210,8 +258,8 @@ function DeleteAccountModal({
   const canDelete = confirm.trim().toUpperCase() === "DELETE";
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !busy) onClose();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !busy) onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -223,25 +271,29 @@ function DeleteAccountModal({
     setBusy(true);
     const result = await deleteAccount(wipeLocal);
     if (!result.ok) {
-      setError(result.error ?? "Could not delete your account.");
+      setError(result.error);
       setBusy(false);
     }
   };
 
   return (
     <div
-      class="fixed inset-0 z-[100] grid place-items-center bg-black/50 p-4 backdrop-blur-sm"
-      onMouseDown={(e) => e.target === e.currentTarget && !busy && onClose()}
+      class="fixed inset-0 z-[130] grid place-items-center bg-black/50 p-4 backdrop-blur-sm"
+      onMouseDown={(event) => event.target === event.currentTarget && !busy && onClose()}
     >
-      <div class="relative w-full max-w-sm animate-fade-rise overflow-hidden rounded-2xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] shadow-2xl shadow-black/50">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-account-title"
+        class="relative w-full max-w-sm animate-fade-rise overflow-hidden rounded-2xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] shadow-2xl shadow-black/50"
+      >
         <div class="flex flex-col items-center gap-2 px-6 pt-8 pb-2 text-center">
           <span class="grid h-12 w-12 place-items-center rounded-2xl bg-[var(--color-danger)]/10 text-[var(--color-danger)]">
             <TrashIcon width={24} height={24} />
           </span>
-          <h3 class="text-lg font-semibold text-[var(--color-text)]">Delete account</h3>
-          <p class="text-xs text-[var(--color-muted)]">
-            This permanently deletes your account and all cloud data. This can't
-            be undone.
+          <h3 id="delete-account-title" class="text-lg font-semibold text-[var(--color-text)]">Delete account</h3>
+          <p class="text-xs leading-5 text-[var(--color-muted)]">
+            This permanently deletes your Todofy account and cloud data. Any linked recurring subscription is cancelled first. This can't be undone.
           </p>
         </div>
 
@@ -250,7 +302,7 @@ function DeleteAccountModal({
             type="button"
             role="checkbox"
             aria-checked={wipeLocal}
-            onClick={() => setWipeLocal((v) => !v)}
+            onClick={() => setWipeLocal((value) => !value)}
             class={`flex w-full items-start gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors ${
               wipeLocal
                 ? "border-[var(--color-danger)]/50 bg-[var(--color-danger)]/5"
@@ -270,22 +322,18 @@ function DeleteAccountModal({
 
           <label class="flex flex-col gap-1 text-left">
             <span class="text-[10px] font-medium uppercase tracking-wider text-[var(--color-faint)]">
-              Type{" "}
-              <code class="rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-1.5 py-0.5 font-mono text-[11px] normal-case tracking-normal text-[var(--color-danger)]">
-                DELETE
-              </code>{" "}
-              to confirm
+              Type <code class="rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-1.5 py-0.5 font-mono text-[11px] normal-case tracking-normal text-[var(--color-danger)]">DELETE</code> to confirm
             </span>
             <input
               value={confirm}
               placeholder="DELETE"
-              onInput={(e) => setConfirm(e.currentTarget.value)}
+              onInput={(event) => setConfirm(event.currentTarget.value)}
               class="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm outline-none transition-colors focus:border-[var(--color-danger)]"
             />
           </label>
 
           {error && (
-            <p class="rounded-lg bg-[var(--color-danger)]/10 px-3 py-2 text-xs text-[var(--color-danger)]">
+            <p role="alert" class="rounded-lg bg-[var(--color-danger)]/10 px-3 py-2 text-xs text-[var(--color-danger)]">
               {error}
             </p>
           )}
@@ -301,246 +349,15 @@ function DeleteAccountModal({
             </button>
             <button
               type="button"
-              onClick={run}
+              onClick={() => void run()}
               disabled={!canDelete || busy}
               class="flex-1 rounded-lg bg-[var(--color-danger)] px-3 py-2.5 text-sm font-medium text-white transition-colors hover:opacity-90 disabled:opacity-50"
             >
-              {busy ? "Deleting…" : "Delete account"}
+              {busy ? "Cancelling and deleting…" : "Delete account"}
             </button>
           </div>
         </div>
       </div>
     </div>
-  );
-}
-
-function AuthModal({
-  signIn,
-  signUp,
-  signInWithGoogle,
-  onClose,
-}: {
-  signIn: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
-  signUp: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
-  signInWithGoogle: () => Promise<{ ok: boolean; error?: string }>;
-  onClose: () => void;
-}) {
-  const [mode, setMode] = useState<Mode>("signin");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [googleBusy, setGoogleBusy] = useState(false);
-
-  const google = async () => {
-    if (googleBusy) return;
-    setError(null);
-    setGoogleBusy(true);
-    try {
-      const result = await signInWithGoogle();
-      if (!result.ok) {
-        setError(result.error ?? "Could not complete Google sign-in.");
-      }
-    } finally {
-      setGoogleBusy(false);
-    }
-  };
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  const submit = async (e: Event) => {
-    e.preventDefault();
-    if (busy) return;
-    setError(null);
-    setBusy(true);
-    try {
-      const run = mode === "signin" ? signIn : signUp;
-      const result = await run(email, password);
-      if (result.ok) onClose();
-      else setError(result.error ?? "Something went wrong.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const signup = mode === "signup";
-
-  return (
-    <div
-      class="fixed inset-0 z-[100] grid place-items-center bg-black/50 p-4 backdrop-blur-sm"
-      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div class="relative w-full max-w-sm animate-fade-rise overflow-hidden rounded-2xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] shadow-2xl shadow-black/50">
-        <button
-          onClick={onClose}
-          title="Close"
-          class="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full text-[var(--color-faint)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
-        >
-          <CloseIcon width={16} height={16} />
-        </button>
-
-        <div class="flex flex-col items-center gap-2 px-6 pt-8 pb-2 text-center">
-          <span class="grid h-12 w-12 place-items-center rounded-2xl bg-[var(--color-accent-soft)] text-[var(--color-accent)]">
-            <UserIcon width={24} height={24} />
-          </span>
-          <h3 class="text-lg font-semibold text-[var(--color-text)]">
-            {signup ? "Create your account" : "Welcome back"}
-          </h3>
-          <p class="text-xs text-[var(--color-muted)]">
-            {signup
-              ? "Sync your tasks across all your devices."
-              : "Sign in to sync your tasks across devices."}
-          </p>
-        </div>
-
-        <div class="flex flex-col gap-3 px-6 pt-4">
-          <button
-            type="button"
-            onClick={google}
-            disabled={googleBusy}
-            class="flex items-center justify-center gap-2.5 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2.5 text-sm font-medium text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface-2)] disabled:opacity-50"
-          >
-            <GoogleIcon width={18} height={18} />
-            {googleBusy ? "Waiting for browser…" : "Continue with Google"}
-          </button>
-          <div class="flex items-center gap-3">
-            <span class="h-px flex-1 bg-[var(--color-border)]" />
-            <span class="text-[10px] font-medium uppercase tracking-wider text-[var(--color-faint)]">
-              or
-            </span>
-            <span class="h-px flex-1 bg-[var(--color-border)]" />
-          </div>
-        </div>
-
-        <form onSubmit={submit} class="flex flex-col gap-3 px-6 pt-3 pb-6">
-          <Field
-            label="Email"
-            type="email"
-            value={email}
-            autocomplete="email"
-            placeholder="you@example.com"
-            onInput={setEmail}
-          />
-          <Field
-            label="Password"
-            type="password"
-            value={password}
-            autocomplete={signup ? "new-password" : "current-password"}
-            placeholder={signup ? "At least 6 characters" : "••••••••"}
-            onInput={setPassword}
-            revealable
-          />
-
-          {error && (
-            <p class="rounded-lg bg-[var(--color-danger)]/10 px-3 py-2 text-xs text-[var(--color-danger)]">
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={busy || !email || !password}
-            class="mt-1 rounded-lg bg-[var(--color-accent)] px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
-          >
-            {busy
-              ? signup
-                ? "Creating account…"
-                : "Signing in…"
-              : signup
-                ? "Create account"
-                : "Sign in"}
-          </button>
-        </form>
-
-        <div class="border-t border-[var(--color-border)] px-6 py-3.5 text-center">
-          <button
-            type="button"
-            onClick={() => {
-              setMode(signup ? "signin" : "signup");
-              setError(null);
-            }}
-            class="group text-xs text-[var(--color-muted)]"
-          >
-            {signup ? (
-              <>
-                Already have an account?{" "}
-                <span class="font-medium text-[var(--color-accent)] transition-colors group-hover:text-[var(--color-accent-hover)]">
-                  Sign in
-                </span>
-              </>
-            ) : (
-              <>
-                New to todofy?{" "}
-                <span class="font-medium text-[var(--color-accent)] transition-colors group-hover:text-[var(--color-accent-hover)]">
-                  Create an account
-                </span>
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Field({
-  label,
-  type,
-  value,
-  placeholder,
-  autocomplete,
-  onInput,
-  revealable,
-}: {
-  label: string;
-  type: string;
-  value: string;
-  placeholder?: string;
-  autocomplete?: string;
-  onInput: (value: string) => void;
-  revealable?: boolean;
-}) {
-  const [reveal, setReveal] = useState(false);
-  const inputType = revealable && reveal ? "text" : type;
-  return (
-    <label class="flex flex-col gap-1 text-left">
-      <span class="text-[10px] font-medium uppercase tracking-wider text-[var(--color-faint)]">
-        {label}
-      </span>
-      <div class="relative">
-        <input
-          type={inputType}
-          value={value}
-          placeholder={placeholder}
-          autocomplete={autocomplete}
-          onInput={(e) => onInput(e.currentTarget.value)}
-          class={`w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] py-2 pl-3 text-sm outline-none transition-colors focus:border-[var(--color-accent)] ${
-            revealable ? "pr-10" : "pr-3"
-          }`}
-        />
-        {revealable && (
-          <button
-            type="button"
-            tabIndex={-1}
-            onClick={() => setReveal((r) => !r)}
-            title={reveal ? "Hide password" : "Show password"}
-            aria-label={reveal ? "Hide password" : "Show password"}
-            class="absolute inset-y-0 right-0 grid w-10 place-items-center text-[var(--color-faint)] transition-colors hover:text-[var(--color-text)]"
-          >
-            {reveal ? (
-              <EyeOffIcon width={16} height={16} />
-            ) : (
-              <EyeIcon width={16} height={16} />
-            )}
-          </button>
-        )}
-      </div>
-    </label>
   );
 }
