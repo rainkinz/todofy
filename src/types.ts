@@ -28,6 +28,8 @@ export interface Task {
   pinned: boolean;
   repeat: RepeatRule | null;
   estimateMinutes: number | null;
+  stage: string | null;
+  boardIndex: number;
   trackedSeconds: number;
   labelIds: string[];
   subtasks: Subtask[];
@@ -123,6 +125,7 @@ export interface TaskPatch {
   repeat?: RepeatRule | null;
   subtasks?: Subtask[];
   estimateMinutes?: number | null;
+  stage?: string | null;
 }
 
 /** A reminder that has fired, shown as an in-app toast. */
@@ -143,6 +146,7 @@ export type ViewId =
   | { kind: "focus" }
   | { kind: "journal" }
   | { kind: "calendar" }
+  | { kind: "board" }
   | { kind: "date"; date: string }
   | { kind: "label"; labelId: string };
 

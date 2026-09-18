@@ -68,6 +68,8 @@ pub fn init(conn: &Connection) -> rusqlite::Result<()> {
             repeat       TEXT,               -- daily|weekdays|weekly|monthly|yearly
             subtasks     TEXT,               -- JSON array of {id,text,done}
             estimate_minutes INTEGER,        -- expected effort; NULL = no estimate
+            stage        TEXT,               -- board column slug; NULL = first column
+            board_index  REAL NOT NULL DEFAULT 0,  -- manual order within a board column
             updated_at   TEXT NOT NULL,      -- RFC3339, bumped on every write
             deleted_at   TEXT                -- soft-delete tombstone; NULL while live
         );
@@ -363,6 +365,23 @@ fn migrate(conn: &Connection) -> rusqlite::Result<()> {
                        WHERE t.id = time_sessions.task_id AND t.deleted_at IS NOT NULL);
         ",
     )?;
+
+    // Kanban board. `stage` is a slug rather than a foreign key so named
+    // columns can be added later as a lookup without migrating task rows.
+    // `board_index` is separate from `order_index` because the list groups by
+    // date and the board by stage; sharing one order would jump both.
+    // Ordered after the UUID conversion for the same reason as the estimate.
+    if !column_exists(conn, "tasks", "stage") {
+        conn.execute("ALTER TABLE tasks ADD COLUMN stage TEXT", [])?;
+    }
+    if !column_exists(conn, "tasks", "board_index") {
+        conn.execute(
+            "ALTER TABLE tasks ADD COLUMN board_index REAL NOT NULL DEFAULT 0",
+            [],
+        )?;
+        // Inherit the existing manual order so the first board opens arranged.
+        conn.execute("UPDATE tasks SET board_index = order_index", [])?;
+    }
 
     Ok(())
 }
@@ -755,6 +774,32 @@ mod tests {
             )
             .unwrap();
         assert_eq!(stored, Some(45));
+    }
+
+    /// Same hazard as the estimate: added after the UUID rebuild, which would
+    /// otherwise drop them. `board_index` must also inherit the list order
+    /// rather than collapsing every task to 0.
+    #[test]
+    fn board_columns_survive_the_uuid_rebuild_and_inherit_the_list_order() {
+        let conn = Connection::open_in_memory().unwrap();
+        seed_legacy(&conn);
+        init(&conn).unwrap();
+
+        assert!(column_exists(&conn, "tasks", "stage"));
+        assert!(column_exists(&conn, "tasks", "board_index"));
+
+        let seeded: Vec<(String, f64)> = conn
+            .prepare("SELECT title, board_index FROM tasks ORDER BY board_index")
+            .unwrap()
+            .query_map([], |r| Ok((r.get(0)?, r.get(1)?)))
+            .unwrap()
+            .collect::<rusqlite::Result<_>>()
+            .unwrap();
+        assert_eq!(
+            seeded,
+            vec![("buy milk".to_string(), 1.0), ("ship it".to_string(), 2.0)],
+            "board_index must be backfilled from order_index, not left at 0"
+        );
     }
 
     /// Running the migration twice must not fail on the already-added column.

@@ -11,6 +11,7 @@ import { SettingsView } from "./SettingsView";
 import { FocusView } from "./FocusView";
 import { JournalView } from "./JournalView";
 import { CalendarView } from "./CalendarView";
+import { BoardView } from "./BoardView";
 import { SearchBar } from "./SearchBar";
 import { TaskDetail } from "./TaskDetail";
 import { ChevronLeftIcon, ChevronRightIcon, InboxIcon } from "./Icons";
@@ -49,6 +50,8 @@ function viewTitle(view: ViewId, labelName?: string): string {
       return "Journal";
     case "calendar":
       return "Calendar";
+    case "board":
+      return "Board";
     case "label":
       return labelName ?? "Label";
   }
@@ -78,6 +81,8 @@ function viewSubtitle(view: ViewId): string {
       return "Write and reflect";
     case "calendar":
       return "Tasks and events by month";
+    case "board":
+      return "Move work across stages";
     case "label":
       return "Tagged tasks";
   }
@@ -110,6 +115,7 @@ export function TaskList() {
   if (view.kind === "focus") return <FocusView />;
   if (view.kind === "journal") return <JournalView />;
   if (view.kind === "calendar") return <CalendarView />;
+  if (view.kind === "board") return <BoardView />;
 
   const labelName =
     view.kind === "label"

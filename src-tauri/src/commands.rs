@@ -61,7 +61,7 @@ fn load_task(conn: &Connection, id: &str) -> rusqlite::Result<Task> {
                 (SELECT COALESCE(SUM(seconds), 0) FROM time_sessions
                  WHERE task_id = tasks.id AND end_at IS NOT NULL
                    AND deleted_at IS NULL),
-                subtasks, estimate_minutes
+                subtasks, estimate_minutes, stage, board_index
          FROM tasks WHERE id = ?1",
         [id],
         |r| {
@@ -80,6 +80,8 @@ fn load_task(conn: &Connection, id: &str) -> rusqlite::Result<Task> {
                 pinned: r.get(10)?,
                 repeat: r.get(11)?,
                 estimate_minutes: r.get(14)?,
+                stage: r.get(15)?,
+                board_index: r.get(16)?,
                 tracked_seconds: r.get(12)?,
                 label_ids: Vec::new(),
                 // Tolerate a NULL or malformed column as an empty checklist.
@@ -143,8 +145,8 @@ pub fn create_task(db: State<Db>, task: NewTask) -> CmdResult<Task> {
     let created = now_iso();
     let id = new_uuid();
     conn.execute(
-        "INSERT INTO tasks (id, title, notes, due_date, remind_at, priority, created_at, order_index, repeat, estimate_minutes, updated_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+        "INSERT INTO tasks (id, title, notes, due_date, remind_at, priority, created_at, order_index, repeat, estimate_minutes, updated_at, board_index)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?8)",
         params![
             id,
             task.title.trim(),
@@ -153,6 +155,8 @@ pub fn create_task(db: State<Db>, task: NewTask) -> CmdResult<Task> {
             task.remind_at,
             task.priority.unwrap_or(4),
             created,
+            // Doubles as the board position, so a new task lands at the end of
+            // both the list and the first column.
             Local::now().timestamp_millis() as f64,
             task.repeat,
             task.estimate_minutes.filter(|m| *m > 0),
@@ -234,6 +238,14 @@ pub fn update_task(db: State<Db>, patch: TaskPatch) -> CmdResult<Task> {
         )
         .map_err(|e| e.to_string())?;
     }
+    if let Some(stage) = &patch.stage {
+        // `Some(None)` sends the task back to the first board column.
+        conn.execute(
+            "UPDATE tasks SET stage = ?1 WHERE id = ?2",
+            params![stage, patch.id],
+        )
+        .map_err(|e| e.to_string())?;
+    }
     if let Some(subtasks) = &patch.subtasks {
         // Replace the whole checklist. An empty list is stored as `[]`.
         let json = serde_json::to_string(subtasks).map_err(|e| e.to_string())?;
@@ -298,6 +310,27 @@ pub fn reorder_task(db: State<Db>, id: String, order_index: f64) -> CmdResult<Ta
     conn.execute(
         "UPDATE tasks SET order_index = ?1 WHERE id = ?2",
         params![order_index, id],
+    )
+    .map_err(|e| e.to_string())?;
+    touch_and_load(&conn, &id).map_err(|e| e.to_string())
+}
+
+/// Drop a task into a board column, mirroring `reorder_task` on the board's
+/// own axis. `stage` is the column slug, None for the first column.
+///
+/// Done is derived from `status`, so the frontend routes those drops through
+/// `toggle_task` instead and recurring tasks still roll forward.
+#[tauri::command]
+pub fn move_task_to_stage(
+    db: State<Db>,
+    id: String,
+    stage: Option<String>,
+    board_index: f64,
+) -> CmdResult<Task> {
+    let conn = db.conn();
+    conn.execute(
+        "UPDATE tasks SET stage = ?1, board_index = ?2 WHERE id = ?3",
+        params![stage, board_index, id],
     )
     .map_err(|e| e.to_string())?;
     touch_and_load(&conn, &id).map_err(|e| e.to_string())

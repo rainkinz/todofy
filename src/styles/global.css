@@ -1191,9 +1191,12 @@ body {
   padding-top: 17px;
 }
 
+/* Folds to fewer columns as the container narrows. The floor is set by the
+   widest field content (the four priority buttons), so a column never gets too
+   thin to hold its own controls. */
 .detail-fields {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(156px, 1fr));
   gap: 12px;
   margin-top: 16px;
 }
@@ -1218,6 +1221,7 @@ body {
 
 .priority-inline {
   display: flex;
+  flex-wrap: wrap;
   gap: 4px;
 }
 
@@ -1277,6 +1281,72 @@ body {
   gap: 6px;
   color: var(--color-faint);
   font-size: 11px;
+}
+
+/* --- Compact task card -------------------------------------------------- */
+
+/* The card above assumes the wide "Next up" slot: a three-across header, every
+   row indented 43px to clear the completion button. `is-compact` rebuilds it as
+   a single column for narrow containers like the board's modal. */
+/* The wide card reserves height so the agenda below doesn't jump; in a modal
+   that is just dead space. */
+.next-up-card.is-compact {
+  min-height: 0;
+}
+
+.next-up-card.is-compact .next-up-body {
+  padding: 16px 16px 16px 14px;
+}
+
+.next-up-card.is-compact .next-up-header {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 11px;
+}
+
+.next-up-card.is-compact .next-up-copy > input {
+  font-size: 17px;
+}
+
+/* The primary action here, so it spans the width instead of competing with
+   the title for room. */
+.next-up-card.is-compact .session-controls {
+  grid-column: 1 / -1;
+  margin-top: 12px;
+}
+
+.next-up-card.is-compact .begin-session {
+  flex: 1;
+  justify-content: center;
+}
+
+.next-up-card.is-compact .next-up-meta,
+.next-up-card.is-compact .next-step-row,
+.next-up-card.is-compact .expanded-task-details {
+  margin-left: 0;
+}
+
+.next-up-card.is-compact .next-up-meta {
+  gap: 8px 11px;
+}
+
+.next-up-card.is-compact .next-step-row {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+/* Stacked, so both align left with everything else. */
+.next-up-card.is-compact .next-step-row > span,
+.next-up-card.is-compact .next-step-row > .more-details {
+  justify-self: start;
+}
+
+.next-up-card.is-compact .detail-fields {
+  gap: 10px;
+}
+
+.next-up-card.is-compact .detail-footer {
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .detail-footer button:hover {
@@ -3524,5 +3594,363 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* --- Kanban board ------------------------------------------------------- */
+
+.board-page .app-page-header {
+  padding-bottom: 16px;
+}
+
+.board-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.board-scope-switch {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  padding: 3px;
+  background: var(--color-surface);
+}
+
+.board-scope-switch button {
+  min-width: 62px;
+  height: 30px;
+  border-radius: 6px;
+  padding: 0 10px;
+  color: var(--color-muted);
+  font-size: 11px;
+  font-weight: 620;
+  transition: background 140ms ease, color 140ms ease, box-shadow 140ms ease;
+}
+
+.board-scope-switch button:hover {
+  color: var(--color-text);
+}
+
+.board-scope-switch button.is-active {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 24%, transparent);
+}
+
+.board-surface {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  gap: 0;
+}
+
+.board-columns {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  /* Full height, so the space below a short column is still a drop target. */
+  align-items: stretch;
+  gap: 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 32px 20px;
+}
+
+.board-column {
+  display: flex;
+  width: 274px;
+  flex: 0 0 274px;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--color-surface) 62%, transparent);
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+/* The column under the pointer, so a cross-column drop stays unambiguous even
+   when the drop slot is scrolled out of sight. */
+.board-column.is-drop-target {
+  border-color: color-mix(in srgb, var(--color-accent) 46%, transparent);
+  background: color-mix(in srgb, var(--color-accent-soft) 40%, transparent);
+}
+
+.board-column-head {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid var(--color-border);
+  padding: 13px 14px 11px;
+}
+
+.board-column-head h3 {
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.board-column-head small {
+  display: block;
+  margin-top: 3px;
+  color: var(--color-faint);
+  font-size: 11px;
+}
+
+.board-column-count {
+  min-width: 22px;
+  border-radius: 999px;
+  padding: 3px 7px;
+  background: var(--color-surface-2);
+  color: var(--color-muted);
+  font-size: 11px;
+  font-weight: 650;
+  text-align: center;
+}
+
+.board-column-cards {
+  display: flex;
+  min-height: 74px;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.board-column-empty {
+  padding: 14px 4px;
+  color: var(--color-faint);
+  font-size: 12px;
+  text-align: center;
+}
+
+.board-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 11px;
+  padding: 11px 12px 11px 13px;
+  background: var(--color-surface);
+  cursor: grab;
+  outline: none;
+  touch-action: none;
+  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+/* Priority down the leading edge, matching the list view's completion circle. */
+.board-card::before {
+  position: absolute;
+  top: 11px;
+  bottom: 11px;
+  left: 0;
+  width: 2px;
+  border-radius: 0 2px 2px 0;
+  background: var(--card-accent);
+  content: "";
+  opacity: 0.75;
+}
+
+.board-card:hover {
+  border-color: var(--color-border-strong);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px color-mix(in srgb, black 14%, transparent);
+}
+
+.board-card.is-selected {
+  border-color: color-mix(in srgb, var(--color-accent) 52%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
+.board-card.is-pinned {
+  background: color-mix(in srgb, var(--color-accent-soft) 32%, var(--color-surface));
+}
+
+.board-card.is-done .board-card-title {
+  color: var(--color-faint);
+  text-decoration: line-through;
+}
+
+/* Keeps its slot while dragged, as in the list view, so the column doesn't
+   jump under the pointer. */
+.board-card.is-dragging {
+  opacity: 0.42;
+}
+
+.board-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.board-card-title {
+  min-width: 0;
+  color: var(--color-text);
+  font-size: 13px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.board-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  padding-left: 25px;
+}
+
+.board-card-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-faint);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.board-card-meta .is-overdue {
+  color: var(--color-danger);
+}
+
+.board-card-meta .is-today {
+  color: var(--color-success);
+}
+
+.board-card-meta .is-soon {
+  color: var(--color-accent);
+}
+
+.board-card-meta .is-tracking {
+  color: var(--color-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.board-card-meta .is-held {
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Past its estimate — red is reserved for this, as in the list view. */
+.board-card-meta .is-over {
+  color: var(--color-danger);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.board-card-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  padding-left: 25px;
+}
+
+.board-card-labels span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 560;
+}
+
+.board-card-labels i {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+/* Where the dragged card would land. */
+.board-drop-slot {
+  height: 3px;
+  flex: 0 0 3px;
+  border-radius: 3px;
+  background: var(--color-accent);
+}
+
+.board-status {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid var(--color-border);
+  padding: 10px 40px;
+  color: var(--color-faint);
+  font-size: 11px;
+}
+
+/* The task opened from a board card. Sized against the viewport so it stays
+   usable at the smallest window — a side panel had to shrink or vanish. */
+.task-modal {
+  display: flex;
+  width: min(560px, 100%);
+  max-height: min(660px, 88vh);
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 16px;
+  background: var(--color-elevated);
+  box-shadow: 0 24px 60px color-mix(in srgb, black 46%, transparent);
+}
+
+.task-modal-head {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border);
+  padding: 13px 14px 13px 18px;
+}
+
+.task-modal-head .section-kicker {
+  margin-bottom: 0;
+}
+
+.task-modal-head button {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--color-muted);
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.task-modal-head button:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.task-modal-body {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+}
+
+/* The card is the whole surface here, so it drops its own chrome. */
+.task-modal-body .next-up-card {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+@media (max-width: 940px) {
+  .board-columns {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+
+  .board-status {
+    padding-right: 20px;
+    padding-left: 20px;
   }
 }

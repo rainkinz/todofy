@@ -149,6 +149,7 @@ pub fn run() {
             commands::create_task,
             commands::update_task,
             commands::reorder_task,
+            commands::move_task_to_stage,
             commands::toggle_task,
             commands::snooze_task,
             commands::delete_task,

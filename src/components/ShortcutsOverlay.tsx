@@ -17,6 +17,8 @@ const ACTIONS: Shortcut[] = [
   { keys: ["E"], desc: "Edit selected task" },
   { keys: ["C"], desc: "Complete / un-complete selected" },
   { keys: ["P"], desc: "Pin / unpin selected" },
+  { keys: ["H"], desc: "Board: move card a column left" },
+  { keys: ["L"], desc: "Board: move card a column right" },
   { keys: ["Del"], desc: "Delete selected" },
 ];
 

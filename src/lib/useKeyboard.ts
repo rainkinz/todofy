@@ -1,5 +1,6 @@
 import { useEffect } from "preact/hooks";
 import { useStore, visibleTaskIds } from "../store";
+import { nudgeColumn } from "./board";
 import { useOnboarding } from "./onboarding";
 
 function isEditable(el: EventTarget | null): boolean {
@@ -72,6 +73,16 @@ export function useKeyboard() {
         s.select(ids[next]);
       };
 
+      // On the board, h/l nudge the selected card to the neighbouring column —
+      // the keyboard equivalent of dragging it.
+      const nudge = (direction: 1 | -1) => {
+        if (s.view.kind !== "board" || !s.selectedId) return;
+        const task = s.tasks.find((x) => x.id === s.selectedId);
+        if (!task) return;
+        const target = nudgeColumn(task, s.tasks, direction);
+        if (target) s.moveTaskToColumn(task.id, target.column, target.boardIndex);
+      };
+
       switch (e.key) {
         case "/":
           e.preventDefault();
@@ -101,6 +112,20 @@ export function useKeyboard() {
         case "ArrowUp":
           e.preventDefault();
           move(-1);
+          break;
+        case "h":
+        case "ArrowLeft":
+          if (s.view.kind === "board") {
+            e.preventDefault();
+            nudge(-1);
+          }
+          break;
+        case "l":
+        case "ArrowRight":
+          if (s.view.kind === "board") {
+            e.preventDefault();
+            nudge(1);
+          }
           break;
         case "e":
           if (s.selectedId) {

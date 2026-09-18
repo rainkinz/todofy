@@ -13,6 +13,7 @@ import {
   CheckCircleIcon as PhCheckCircleIcon,
   CheckIcon as PhCheckIcon,
   CloudIcon as PhCloudIcon,
+  ColumnsIcon,
   CrownSimpleIcon,
   DevicesIcon as PhDevicesIcon,
   DotsSixVerticalIcon,
@@ -86,6 +87,7 @@ export const TrashIcon = icon(PhTrashIcon);
 export const FlagIcon = icon(PhFlagIcon);
 export const BellIcon = icon(PhBellIcon);
 export const CalendarIcon = icon(PhCalendarIcon);
+export const BoardIcon = icon(ColumnsIcon);
 export const CloseIcon = icon(XIcon);
 export const NoteIcon = icon(NotePencilIcon);
 export const JournalIcon = icon(PhNotebookIcon);

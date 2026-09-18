@@ -6,7 +6,7 @@
 
 **A modern, fast, and private task and calendar app for Linux, macOS, and Windows.**
 
-Plan tasks and local events, stay focused with timers and reminders, optionally sync across devices, and push dated tasks one‑way to Google Calendar — even when todofy is tucked away in your tray.
+Plan your work as a list, a board, or a calendar. Stay focused with timers and reminders, optionally sync across devices, and push dated tasks one‑way to Google Calendar — even when todofy is tucked away in your tray.
 
 ![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-1a2029?style=flat-square&logo=linux&logoColor=white)
 ![Tauri](https://img.shields.io/badge/Tauri-2.x-24C8DB?style=flat-square&logo=tauri&logoColor=white)
@@ -26,6 +26,7 @@ Plan tasks and local events, stay focused with timers and reminders, optionally 
 ## ✨ Features
 
 - 🗓️ **Smart views** — _Today_ (with overdue rollup), _Upcoming_ (grouped by date), and _Inbox_
+- 📋 **Kanban board** — see your work as cards across _To do_, _In progress_, _Blocked_ and _Done_. Drag a card down its column to reorder it or across to change its stage; dropping into _Done_ completes the task properly, so a repeating task still rolls forward to its next occurrence and dragging it back out re‑opens it. Cards carry the same detail as list rows — priority, due date, labels, checklist progress, estimate, and live tracked time — and clicking one opens the full task in a dialog. Narrow the board to _Today_ or _This week_, search and filter as you would anywhere else, or move the selected card with **H** / **L**. The board keeps its own arrangement, so rearranging cards never disturbs your list order
 - ⚡ **Global quick‑add** — hit **Ctrl+Alt+A** anywhere (even with todofy tucked in the tray) for a floating capture bar; type, press Enter, and you're back to what you were doing
 - ✍️ **Natural‑language quick‑add** — type _"pay rent friday 5pm #home p1"_ and the date, time, priority, and label are parsed out live and shown as chips
 - 🔁 **Recurring tasks** — repeat _daily, every weekday, weekly, monthly,_ or _yearly_; completing one rolls it forward to the next occurrence instead of finishing it (also from natural language — _"water plants every week"_)
@@ -111,20 +112,20 @@ Grab a package from the [Releases](../../releases) page, or build it yourself (s
 **AppImage** — portable, runs on any distro:
 
 ```bash
-chmod +x todofy_1.11.0_amd64.AppImage
-./todofy_1.11.0_amd64.AppImage
+chmod +x todofy_1.12.0_amd64.AppImage
+./todofy_1.12.0_amd64.AppImage
 ```
 
 **Debian / Ubuntu:**
 
 ```bash
-sudo dpkg -i todofy_1.11.0_amd64.deb
+sudo dpkg -i todofy_1.12.0_amd64.deb
 ```
 
 **Fedora / RHEL / openSUSE:**
 
 ```bash
-sudo rpm -i todofy-1.11.0-1.x86_64.rpm
+sudo rpm -i todofy-1.12.0-1.x86_64.rpm
 ```
 
 **macOS** — open the `.dmg` and drag todofy into Applications. It's not
@@ -132,14 +133,14 @@ notarized yet, so on first launch right‑click the app and choose **Open** to
 get past Gatekeeper:
 
 ```
-todofy_1.11.0_universal.dmg  # Intel and Apple Silicon
+todofy_1.12.0_universal.dmg  # Intel and Apple Silicon
 ```
 
 **Windows** — run the installer:
 
 ```
-todofy_1.11.0_x64-setup.exe   # NSIS installer
-todofy_1.11.0_x64_en-US.msi   # or the MSI
+todofy_1.12.0_x64-setup.exe   # NSIS installer
+todofy_1.12.0_x64_en-US.msi   # or the MSI
 ```
 
 > Your tasks live in the app's data directory — `~/.local/share/com.unifybrowse.todofy/`
@@ -156,6 +157,8 @@ todofy_1.11.0_x64_en-US.msi   # or the MSI
 | `/`                    | Focus the search bar                                         |
 | `j` / `↓`              | Move to next task                                            |
 | `k` / `↑`              | Move to previous task                                        |
+| `h` / `←`              | Board: move the selected card one column left                |
+| `l` / `→`              | Board: move the selected card one column right               |
 | `e`                    | Edit the selected task                                       |
 | `c` / `Enter`          | Complete / uncomplete the selected task                      |
 | `p`                    | Pin / unpin the selected task                                |
@@ -207,14 +210,27 @@ Official releases are signed in CI from the `TAURI_SIGNING_PRIVATE_KEY` reposito
 Sync is **off by default** — todofy is local‑first and works fully offline without it. To run your own sync backend so your tasks, labels, focus history, and journal follow you across devices (with nothing going through anyone else's server):
 
 1. **Create a Supabase project** — the free tier is plenty — at [supabase.com](https://supabase.com), or use any Postgres you control. Make sure **Email** auth is enabled (it is by default).
-2. **Apply the schema.** Open the project's **SQL Editor** and run the migrations in order — [`20260826120000_sync_schema.sql`](supabase/migrations/20260826120000_sync_schema.sql), [`20260902000000_journal.sql`](supabase/migrations/20260902000000_journal.sql), [`20260902133603_sync_tombstones.sql`](supabase/migrations/20260902133603_sync_tombstones.sql), [`20260909120000_task_estimate.sql`](supabase/migrations/20260909120000_task_estimate.sql), then [`20260914120000_sync_pull.sql`](supabase/migrations/20260914120000_sync_pull.sql) — or use the [Supabase CLI](https://supabase.com/docs/guides/cli):
+2. **Apply the schema.** Open the project's **SQL Editor** and run every file in [`supabase/migrations/`](supabase/migrations) in filename order:
+
+   | #   | Migration                                                                                      | Adds                                                         |
+   | --- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+   | 1   | [`20260826120000_sync_schema.sql`](supabase/migrations/20260826120000_sync_schema.sql)         | The per‑user content tables, indexes, and row‑level security |
+   | 2   | [`20260902000000_journal.sql`](supabase/migrations/20260902000000_journal.sql)                 | Journal entries                                              |
+   | 3   | [`20260902133603_sync_tombstones.sql`](supabase/migrations/20260902133603_sync_tombstones.sql) | The content‑free deletion log                                |
+   | 4   | [`20260909120000_task_estimate.sql`](supabase/migrations/20260909120000_task_estimate.sql)     | `tasks.estimate_minutes`                                     |
+   | 5   | [`20260914120000_sync_pull.sql`](supabase/migrations/20260914120000_sync_pull.sql)             | The `sync_pull` function, one request per poll               |
+   | 6   | [`20260918120000_task_board.sql`](supabase/migrations/20260918120000_task_board.sql)           | `tasks.stage` and `tasks.board_index` for the board          |
+
+   Every migration is additive and idempotent, so re‑running one is safe and an older client keeps working against a newer schema. Applying them all matters: the desktop app writes every column it knows about, so a missing one fails the whole sync rather than just its own feature.
+
+   Or use the [Supabase CLI](https://supabase.com/docs/guides/cli):
 
    ```bash
    supabase link --project-ref <your-project-ref>
    supabase db push
    ```
 
-   This creates the five per‑user content tables in the default `public` schema, plus a content-free `sync_tombstones` deletion log. All tables use row-level security, so signed-in users can only access their own rows. Deleted content is physically removed after its marker is safely recorded, allowing other devices to learn the deletion without retaining task or journal text.
+   Everything lands in the default `public` schema: five per‑user content tables plus the content-free `sync_tombstones` deletion log. All of them use row-level security, so signed-in users can only access their own rows. Deleted content is physically removed after its marker is safely recorded, allowing other devices to learn the deletion without retaining task or journal text.
 
 3. **Point todofy at your project.** Copy the env template and fill in your project's URL and publishable key — both are safe to ship in a client; row‑level security is what actually protects the data:
 
@@ -231,10 +247,13 @@ Sync is **off by default** — todofy is local‑first and works fully offline w
    allow list before building, or every request is denied and sync silently stops:
 
    ```jsonc
-   { "identifier": "http:default", "allow": [
-     { "url": "https://*.supabase.co/*" },
-     { "url": "https://supabase.example.com/*" }   // ← your host
-   ]}
+   {
+     "identifier": "http:default",
+     "allow": [
+       { "url": "https://*.supabase.co/*" },
+       { "url": "https://supabase.example.com/*" }, // ← your host
+     ],
+   }
    ```
 
 4. **Deploy the account-deletion function.** So users can delete their own account (which can't be done with the client key), deploy the [`delete-account`](supabase/functions/delete-account/index.ts) edge function. It verifies the caller and deletes their auth user; the schema's `on delete cascade` removes all their data:
@@ -285,9 +304,11 @@ bunx tauri icon app-icon.svg
 todofy/
 ├── src/                    # Preact frontend
 │   ├── components/         # UI (Sidebar, TaskList, TaskDetail, DatePicker,
-│   │                       #     FocusView, JournalView, SettingsView, …)
+│   │                       #     BoardView, CalendarView, FocusView,
+│   │                       #     JournalView, SettingsView, …)
 │   ├── lib/                # dates, duration, locale, sound, tracking, theme,
-│   │                       #     keyboard, nlp, repeat, markdown, journal helpers
+│   │                       #     keyboard, nlp, repeat, markdown, journal,
+│   │                       #     board columns, ordering, drag helpers
 │   ├── store.ts            # Zustand store
 │   └── types.ts
 ├── src-tauri/              # Rust backend
@@ -326,6 +347,8 @@ todofy/
 - [x] Task estimates with elapsed-vs-estimate tracking
 - [x] System clock and calendar conventions (12/24h, week start)
 - [x] Repeating reminders with sound, volume, and ramp-up
+- [x] Kanban board with drag between columns
+- [ ] Custom board columns (rename, recolor, reorder, and WIP limits)
 - [ ] Priority profiles (per-priority names, colors, sounds, and notification styles)
 
 ## 🤝 Contributing

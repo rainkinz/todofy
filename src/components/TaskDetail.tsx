@@ -32,7 +32,18 @@ const PRIORITIES: { value: 1 | 2 | 3 | 4; label: string; color: string }[] = [
   { value: 4, label: "P4", color: "var(--color-prio-4)" },
 ];
 
-export function TaskDetail({ taskId }: { taskId?: string }) {
+/**
+ * The task card. `compact` switches to a single-column layout for narrow
+ * containers like the board's modal, where the three-across header and its
+ * 43px indent have nowhere to go.
+ */
+export function TaskDetail({
+  taskId,
+  compact,
+}: {
+  taskId?: string;
+  compact?: boolean;
+}) {
   const {
     tasks,
     labels,
@@ -114,7 +125,9 @@ export function TaskDetail({ taskId }: { taskId?: string }) {
   };
 
   return (
-    <section class={`next-up-card ${done ? "is-done" : ""}`}>
+    <section
+      class={`next-up-card ${done ? "is-done" : ""} ${compact ? "is-compact" : ""}`}
+    >
       <div class="next-up-accent" style={{ background: PRIORITIES[task.priority - 1].color }} />
       <div class="next-up-body">
         <div class="next-up-header">

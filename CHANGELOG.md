@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.12.0 — 2026-09-18
+
+### Added
+
+- **A Kanban board.** A new _Board_ view lays your work out as cards across four columns — _To do_, _In progress_, _Blocked_ and _Done_ — so you can see what's moving and what's stuck instead of reading it off a list. Drag a card anywhere: down its own column to reorder it, or across to another to change its stage. Dropping a card into _Done_ completes the task properly, so a repeating task still rolls forward to its next occurrence and still earns its confetti; dragging one back out re-opens it. Cards carry the same detail the list rows do — priority, due date, labels, checklist progress, estimate and the live time tracked — and clicking one opens the full task in a dialog over the board. A scope switch narrows the board to _Today_ or _This week_, search and the label and priority filters apply as they do everywhere else, and your choice of scope is remembered. Keyboard users can nudge the selected card between columns with **H** and **L**. The board's arrangement is its own: rearranging cards never disturbs the manual order you've set in the list views, and both travel with account sync
+
+### Fixed
+
+- The task details opened from a board card now stay readable at every window size. The schedule, estimate and priority controls fold to fewer columns as the window narrows instead of being cut off, and the priority buttons no longer overflow their box
+
 ## v1.11.0 — 2026-09-16
 
 ### Added

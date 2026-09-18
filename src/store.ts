@@ -8,6 +8,13 @@ import {
   today,
 } from "./lib/dates";
 import { sectionsForView } from "./lib/grouping";
+import {
+  boardColumns,
+  DONE_COLUMN,
+  inScope,
+  readBoardScope,
+  type ColumnId,
+} from "./lib/board";
 import { applyTheme, initialTheme, type Theme } from "./lib/theme";
 import {
   setTimeFormat,
@@ -97,6 +104,11 @@ interface State {
   addTask: (input: NewTask) => Promise<void>;
   patchTask: (patch: TaskPatch) => Promise<void>;
   reorderTask: (id: string, orderIndex: number) => Promise<void>;
+  moveTaskToColumn: (
+    id: string,
+    column: ColumnId,
+    boardIndex: number,
+  ) => Promise<void>;
   toggleTask: (id: string, done: boolean) => Promise<void>;
   snoozeTask: (id: string, minutes: number) => Promise<void>;
   rescheduleOverdue: () => Promise<void>;
@@ -183,7 +195,7 @@ export const useStore = create<State>((set, get) => ({
       api.listEvents(),
     ]);
     const failed: string[] = [];
-    const keep = <T,>(
+    const keep = <T>(
       result: PromiseSettledResult<T>,
       name: string,
       previous: T,
@@ -281,6 +293,31 @@ export const useStore = create<State>((set, get) => ({
     });
     try {
       await api.reorderTask(id, orderIndex);
+    } catch {
+      // Fall back to the source of truth if the write failed.
+      await get().load();
+    }
+  },
+
+  moveTaskToColumn: async (id, column, boardIndex) => {
+    const task = get().tasks.find((t) => t.id === id);
+    if (!task) return;
+
+    if (column === DONE_COLUMN) {
+      if (task.status !== "done") await get().toggleTask(id, true);
+      return;
+    }
+    if (task.status === "done") await get().toggleTask(id, false);
+
+    set({
+      tasks: sortTasks(
+        get().tasks.map((t) =>
+          t.id === id ? { ...t, stage: column, boardIndex } : t,
+        ),
+      ),
+    });
+    try {
+      await api.moveTaskToStage(id, column, boardIndex);
     } catch {
       // Fall back to the source of truth if the write failed.
       await get().load();
@@ -542,7 +579,9 @@ function sortEvents(events: Event[]): Event[] {
 
 export function eventDate(event: Event): string | null {
   if (!event.startAt) return null;
-  return event.allDay ? event.startAt.slice(0, 10) : toLocalDate(new Date(event.startAt));
+  return event.allDay
+    ? event.startAt.slice(0, 10)
+    : toLocalDate(new Date(event.startAt));
 }
 
 export function applySearchAndFilters(
@@ -590,6 +629,8 @@ export function tasksForView(tasks: Task[], view: ViewId): Task[] {
       return tasks.filter((x) => x.status === "done");
     case "calendar":
       return tasks.filter((x) => x.dueDate);
+    case "board":
+      return tasks;
     case "labels":
     case "settings":
     case "focus":
@@ -613,7 +654,7 @@ export function navCount(tasks: Task[], view: ViewId): number {
   if (view.kind === "completed" || view.kind === "pinned") {
     return tasksForView(tasks, view).length;
   }
-  if (view.kind === "labels") return 0;
+  if (view.kind === "labels" || view.kind === "board") return 0;
   return activeCount(tasks, view);
 }
 
@@ -626,6 +667,12 @@ export function visibleTaskIds(tasks: Task[], view: ViewId): string[] {
     filterLabelIds,
     filterPriorities,
   );
+  // The board keeps Done and walks column by column, so j/k follows the screen.
+  if (view.kind === "board") {
+    return boardColumns(inView.filter((t) => inScope(t, readBoardScope())))
+      .flatMap((column) => column.tasks)
+      .map((t) => t.id);
+  }
   const relevant =
     view.kind === "completed" || view.kind === "pinned"
       ? inView

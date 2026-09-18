@@ -47,6 +47,11 @@ pub struct Task {
     /// Recurrence rule: daily|weekdays|weekly|monthly|yearly, or None.
     pub repeat: Option<String>,
     pub estimate_minutes: Option<i64>,
+    /// Board column slug; None is the first column. Never 'done' — that column
+    /// is derived from `status`.
+    pub stage: Option<String>,
+    /// Manual order within the board column.
+    pub board_index: f64,
     /// Total focused seconds from completed stopwatch sessions.
     pub tracked_seconds: i64,
     /// Label ids attached to this task.
@@ -92,6 +97,9 @@ pub struct TaskPatch {
     /// `Some(None)` clears the estimate; `Some(Some(minutes))` sets it.
     #[serde(default, deserialize_with = "double_option")]
     pub estimate_minutes: Option<Option<i64>>,
+    /// `Some(None)` moves the task back to the first board column.
+    #[serde(default, deserialize_with = "double_option")]
+    pub stage: Option<Option<String>>,
 }
 
 /// A free-form journal entry. Grouped by `entry_date` for the calendar rail.

@@ -36,6 +36,12 @@ pub struct SyncTask {
     /// still deserialize instead of failing the whole pull.
     #[serde(default)]
     pub estimate_minutes: Option<i64>,
+    /// Defaulted for the same reason as the estimate; a row from a pre-board
+    /// client lands in the first column, where an unplaced task belongs anyway.
+    #[serde(default)]
+    pub stage: Option<String>,
+    #[serde(default)]
+    pub board_index: f64,
     pub updated_at: String,
     pub deleted_at: Option<String>,
 }
@@ -132,7 +138,7 @@ fn collect_changes(conn: &Connection, since: &str) -> rusqlite::Result<SyncBundl
     let mut stmt = conn.prepare(
         "SELECT id, title, notes, due_date, remind_at, status, priority, created_at,
                 completed_at, order_index, pinned, repeat, subtasks, estimate_minutes,
-                updated_at, deleted_at
+                stage, board_index, updated_at, deleted_at
          FROM tasks",
     )?;
     let rows = stmt.query_map([], |r| {
@@ -151,8 +157,10 @@ fn collect_changes(conn: &Connection, since: &str) -> rusqlite::Result<SyncBundl
             repeat: r.get(11)?,
             subtasks: subtasks_value(r.get(12)?),
             estimate_minutes: r.get(13)?,
-            updated_at: r.get(14)?,
-            deleted_at: r.get(15)?,
+            stage: r.get(14)?,
+            board_index: r.get(15)?,
+            updated_at: r.get(16)?,
+            deleted_at: r.get(17)?,
         })
     })?;
     for row in rows {
@@ -371,7 +379,7 @@ fn fetch_task(conn: &Connection, id: &str) -> rusqlite::Result<Option<SyncTask>>
     conn.query_row(
         "SELECT id, title, notes, due_date, remind_at, status, priority, created_at,
                 completed_at, order_index, pinned, repeat, subtasks, estimate_minutes,
-                updated_at, deleted_at
+                stage, board_index, updated_at, deleted_at
          FROM tasks WHERE id = ?1",
         [id],
         |r| {
@@ -390,8 +398,10 @@ fn fetch_task(conn: &Connection, id: &str) -> rusqlite::Result<Option<SyncTask>>
                 repeat: r.get(11)?,
                 subtasks: subtasks_value(r.get(12)?),
                 estimate_minutes: r.get(13)?,
-                updated_at: r.get(14)?,
-                deleted_at: r.get(15)?,
+                stage: r.get(14)?,
+                board_index: r.get(15)?,
+                updated_at: r.get(16)?,
+                deleted_at: r.get(17)?,
             })
         },
     )
@@ -446,8 +456,9 @@ fn apply_bundle(conn: &Connection, remote: &SyncBundle) -> rusqlite::Result<()> 
             conn.execute(
                 "INSERT INTO tasks (id, title, notes, due_date, remind_at, status, priority,
                                     created_at, completed_at, order_index, pinned, repeat,
-                                    subtasks, estimate_minutes, updated_at, deleted_at)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)
+                                    subtasks, estimate_minutes, stage, board_index,
+                                    updated_at, deleted_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)
                  ON CONFLICT(id) DO UPDATE SET
                     title = excluded.title, notes = excluded.notes, due_date = excluded.due_date,
                     remind_at = excluded.remind_at, status = excluded.status,
@@ -455,6 +466,7 @@ fn apply_bundle(conn: &Connection, remote: &SyncBundle) -> rusqlite::Result<()> 
                     order_index = excluded.order_index, pinned = excluded.pinned,
                     repeat = excluded.repeat, subtasks = excluded.subtasks,
                     estimate_minutes = excluded.estimate_minutes,
+                    stage = excluded.stage, board_index = excluded.board_index,
                     updated_at = excluded.updated_at, deleted_at = excluded.deleted_at",
                 params![
                     t.id,
@@ -471,6 +483,8 @@ fn apply_bundle(conn: &Connection, remote: &SyncBundle) -> rusqlite::Result<()> 
                     t.repeat,
                     t.subtasks.to_string(),
                     t.estimate_minutes,
+                    t.stage,
+                    t.board_index,
                     t.updated_at,
                     t.deleted_at,
                 ],
@@ -917,6 +931,8 @@ mod tests {
                 pinned: false,
                 repeat: None,
                 estimate_minutes: Some(90),
+                stage: None,
+                board_index: 0.0,
                 subtasks: serde_json::json!([]),
                 updated_at: "2026-01-01T00:00:00+00:00".into(),
                 deleted_at: None,
@@ -943,8 +959,42 @@ mod tests {
         assert_eq!(task.estimate_minutes, Some(90));
     }
 
-    /// A cloud row written before this feature has no `estimate_minutes` key at
-    /// all; the whole pull must not fail on it.
+    #[test]
+    fn board_placement_survives_a_full_sync_round_trip() {
+        let conn = setup();
+        let pulled = SyncBundle {
+            tasks: vec![SyncTask {
+                id: "t1".into(),
+                title: "ship the board".into(),
+                notes: None,
+                due_date: None,
+                remind_at: None,
+                status: "active".into(),
+                priority: 4,
+                created_at: "2026-01-01T00:00:00+00:00".into(),
+                completed_at: None,
+                order_index: 1.0,
+                pinned: false,
+                repeat: None,
+                estimate_minutes: None,
+                stage: Some("doing".into()),
+                board_index: 42.5,
+                subtasks: serde_json::json!([]),
+                updated_at: "2026-01-01T00:00:00+00:00".into(),
+                deleted_at: None,
+            }],
+            ..Default::default()
+        };
+        apply_bundle(&conn, &pulled).unwrap();
+
+        let bundle = collect_changes(&conn, EPOCH).unwrap();
+        let task = bundle.tasks.iter().find(|t| t.id == "t1").unwrap();
+        assert_eq!(task.stage.as_deref(), Some("doing"));
+        assert_eq!(task.board_index, 42.5);
+    }
+
+    /// A cloud row written before these features has no `estimate_minutes`,
+    /// `stage` or `board_index` key at all; the whole pull must not fail on it.
     #[test]
     fn task_json_without_an_estimate_still_deserializes() {
         let json = serde_json::json!({
@@ -957,6 +1007,8 @@ mod tests {
         });
         let task: SyncTask = serde_json::from_value(json).expect("must tolerate the missing key");
         assert_eq!(task.estimate_minutes, None);
+        assert_eq!(task.stage, None, "an unplaced task belongs in column one");
+        assert_eq!(task.board_index, 0.0);
     }
 
     #[test]
@@ -984,6 +1036,8 @@ mod tests {
                 pinned: false,
                 repeat: None,
                 estimate_minutes: None,
+                stage: None,
+                board_index: 0.0,
                 subtasks: serde_json::json!([]),
                 updated_at: "2026-01-01T00:00:00+00:00".into(),
                 deleted_at: None,
@@ -1031,6 +1085,8 @@ mod tests {
                 pinned: true,
                 repeat: None,
                 estimate_minutes: None,
+                stage: None,
+                board_index: 0.0,
                 subtasks: serde_json::json!([{"id":1,"text":"a","done":false}]),
                 updated_at: "2026-06-01T05:00:00+05:00".into(),
                 deleted_at: None,

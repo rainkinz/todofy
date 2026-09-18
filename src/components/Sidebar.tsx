@@ -7,6 +7,7 @@ import { weekdayOffset } from "../lib/locale";
 import { billingConfigured, useBilling } from "../lib/billing";
 import { useUpdater } from "../lib/updater";
 import {
+  BoardIcon,
   CalendarIcon,
   CheckCircleIcon,
   ChevronLeftIcon,
@@ -32,6 +33,7 @@ const NAV: { id: ViewId; label: string; Icon: typeof InboxIcon }[] = [
   { id: { kind: "inbox" }, label: "Inbox", Icon: InboxIcon },
   { id: { kind: "pinned" }, label: "Pinboard", Icon: PinIcon },
   { id: { kind: "completed" }, label: "Completed", Icon: CheckCircleIcon },
+  { id: { kind: "board" }, label: "Board", Icon: BoardIcon },
   { id: { kind: "calendar" }, label: "Calendar", Icon: CalendarIcon },
   { id: { kind: "labels" }, label: "Labels", Icon: LabelIcon },
   { id: { kind: "journal" }, label: "Journal", Icon: JournalIcon },

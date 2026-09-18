@@ -21,6 +21,8 @@ export const api = {
   updateTask: (patch: TaskPatch) => invoke<Task>("update_task", { patch }),
   reorderTask: (id: string, orderIndex: number) =>
     invoke<Task>("reorder_task", { id, orderIndex }),
+  moveTaskToStage: (id: string, stage: string | null, boardIndex: number) =>
+    invoke<Task>("move_task_to_stage", { id, stage, boardIndex }),
   toggleTask: (id: string, done: boolean) =>
     invoke<Task>("toggle_task", { id, done }),
   deleteTask: (id: string) => invoke<void>("delete_task", { id }),
