@@ -44,6 +44,7 @@ Plan your work as a list, a board, or a calendar. Stay focused with timers and r
 - 📆 **Beautiful date & time picker** — click the month or year to jump anywhere in seconds, then set the date, the time, and the recurrence in a single pass without the picker closing on you. The time goes into a themed **HH:MM** field that follows your locale, and the one‑tap quick times are yours to edit
 - ⏰ **Reminders that reach you** — desktop notifications fire **even when hidden in the tray**, as either a system notification or todofy's own popup card pinned to a screen corner, with one‑tap **snooze**. Optionally repeat until you actually answer, with a **sound** (built‑in or your own file), a volume, and a ramp that gets louder each time
 - 🚩 **Priorities** — P1–P4 with color‑coded flags
+- ⬇️ **Signed self‑updates** — todofy checks for a new version quietly once a day and can install it for you. Turn on **Install automatically** and it offers the update as soon as it finds one, shows you what's new, and handles the rest — but it never downloads without asking and never restarts on its own, and a question that arrives while todofy is in the tray waits until you're back at the window. Progress follows you around the app as a ring in the top bar. Every bundle is cryptographically signed and verified before install, so a tampered build is refused; `.deb` and `.rpm` installs are pointed at the release page rather than replaced behind your package manager's back
 - ⚙️ **Settings & run‑on‑startup** — launch todofy at login, opening the window or starting quietly in the tray
 - 🌍 **Follows your system** — 12‑ or 24‑hour clock and the day your week starts on are taken from your desktop's regional settings, with an explicit override if you'd rather choose
 - 🌗 **Light & dark themes** — dark by default, remembers your choice
@@ -112,20 +113,20 @@ Grab a package from the [Releases](../../releases) page, or build it yourself (s
 **AppImage** — portable, runs on any distro:
 
 ```bash
-chmod +x todofy_1.12.0_amd64.AppImage
-./todofy_1.12.0_amd64.AppImage
+chmod +x todofy_1.12.1_amd64.AppImage
+./todofy_1.12.1_amd64.AppImage
 ```
 
 **Debian / Ubuntu:**
 
 ```bash
-sudo dpkg -i todofy_1.12.0_amd64.deb
+sudo dpkg -i todofy_1.12.1_amd64.deb
 ```
 
 **Fedora / RHEL / openSUSE:**
 
 ```bash
-sudo rpm -i todofy-1.12.0-1.x86_64.rpm
+sudo rpm -i todofy-1.12.1-1.x86_64.rpm
 ```
 
 **macOS** — open the `.dmg` and drag todofy into Applications. It's not
@@ -133,19 +134,41 @@ notarized yet, so on first launch right‑click the app and choose **Open** to
 get past Gatekeeper:
 
 ```
-todofy_1.12.0_universal.dmg  # Intel and Apple Silicon
+todofy_1.12.1_universal.dmg  # Intel and Apple Silicon
 ```
 
 **Windows** — run the installer:
 
 ```
-todofy_1.12.0_x64-setup.exe   # NSIS installer
-todofy_1.12.0_x64_en-US.msi   # or the MSI
+todofy_1.12.1_x64-setup.exe   # NSIS installer
+todofy_1.12.1_x64_en-US.msi   # or the MSI
 ```
 
 > Your tasks live in the app's data directory — `~/.local/share/com.unifybrowse.todofy/`
 > on Linux, `~/Library/Application Support/com.unifybrowse.todofy/` on macOS, and
 > `%APPDATA%\com.unifybrowse.todofy\` on Windows.
+
+### Staying up to date
+
+todofy looks for a new version quietly once a day and tells you when it finds
+one. **Settings → Updates** is where this lives:
+
+| Setting                   | What it does                                                                          |
+| ------------------------- | ------------------------------------------------------------------------------------- |
+| **Check automatically**   | The daily look. Turn it off and todofy only checks when you press **Check now**        |
+| **Install automatically** | Offers each new version as soon as it's found, then downloads and installs on your OK  |
+
+Neither one takes the decision away from you: todofy always asks before
+downloading and never restarts on its own, so an update can't interrupt a
+half‑typed task. If the question arrives while todofy is in the tray it waits
+until the window is back on screen. Downloads show their progress as a ring in
+the top bar, from any view.
+
+Every bundle is cryptographically signed at release time and verified before it
+is installed, so an unofficial or tampered build is refused. The AppImage,
+macOS and Windows builds update in place; **`.deb` and `.rpm` installs are owned
+by your package manager**, so todofy points those at the release page instead of
+replacing files behind your package database's back.
 
 ## ⌨️ Keyboard shortcuts
 

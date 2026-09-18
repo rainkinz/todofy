@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.12.1 — 2026-09-18
+
+### Fixed
+
+- **Todofy left running no longer stops looking for updates.** The daily check only ever ran once, a few seconds after launch, so an install that lives in the tray for days or weeks — which is how todofy is meant to be used — would never notice a new version after the first look. Checks now continue on their daily schedule for as long as the app is open, and switching them off in Settings takes effect straight away instead of at the next restart
+- **A download no longer disappears when you leave Settings.** Progress was only drawn inside the Updates panel, so navigating away hid a transfer that was still running and left no way to tell whether it had stalled. The marker in the top bar now carries it as a progress ring with the percentage, visible from every view, and a finished update keeps its marker until you restart
+
+### Added
+
+- **Todofy can install its own updates.** A new **Install automatically** switch under **Settings → Updates** turns the daily check into a complete update: when a new version turns up, todofy asks whether to install it, shows you what's new, and takes care of the rest. It never downloads without asking and never restarts on its own — the two moments that would cost you bandwidth or a half‑typed task are always yours to approve. If the question arrives while todofy is in the tray, it waits until you're actually looking at the window rather than being spent on an empty screen. The switch is off until you turn it on, and is unavailable on `.deb` and `.rpm` installs, which your package manager owns
+
 ## v1.12.0 — 2026-09-18
 
 ### Added

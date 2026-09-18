@@ -21,6 +21,7 @@ import { ReminderToasts } from "./components/ReminderToasts";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 import { FocusWidget } from "./components/FocusWidget";
 import { ShortcutsOverlay } from "./components/ShortcutsOverlay";
+import { UpdateDialog } from "./components/UpdateDialog";
 import { Celebration } from "./components/Celebration";
 import { SyncAccountDialog } from "./components/SyncAccountDialog";
 import { ProPaywall } from "./components/ProPaywall";
@@ -187,6 +188,7 @@ export function App() {
       <ProPaywall />
       <AuthDialog />
       <ShortcutsOverlay />
+      <UpdateDialog />
       <Celebration />
       <Onboarding />
       <ContextMenu appItems={menuActions} />

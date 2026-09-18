@@ -127,6 +127,9 @@ export function SettingsView() {
   } = useStore();
   const autoCheckUpdates = useUpdater((s) => s.autoCheck);
   const setAutoCheckUpdates = useUpdater((s) => s.setAutoCheck);
+  const autoInstallUpdates = useUpdater((s) => s.autoInstall);
+  const setAutoInstallUpdates = useUpdater((s) => s.setAutoInstall);
+  const canSelfUpdate = useUpdater((s) => s.canSelfUpdate);
   // Read back from the locale module, which the store actions keep in step.
   const timeFormatPref = timeFormat();
   const weekStartPref = weekStartSetting();
@@ -770,6 +773,22 @@ export function SettingsView() {
             <Switch
               checked={autoCheckUpdates}
               onChange={() => void setAutoCheckUpdates(!autoCheckUpdates)}
+            />
+          </Row>
+          <div class="border-t border-[var(--color-border)]" />
+          <Row
+            icon={<DownloadIcon width={18} height={18} />}
+            title="Install automatically"
+            desc={
+              canSelfUpdate
+                ? "Offer to install a new version as soon as it's found. Todofy always asks before downloading, and never restarts on its own."
+                : "This copy is managed by your package manager, so new versions are installed from there."
+            }
+          >
+            <Switch
+              checked={autoInstallUpdates && canSelfUpdate}
+              disabled={!autoCheckUpdates || !canSelfUpdate}
+              onChange={() => void setAutoInstallUpdates(!autoInstallUpdates)}
             />
           </Row>
         </Section>

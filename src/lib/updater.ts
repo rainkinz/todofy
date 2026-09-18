@@ -8,6 +8,7 @@ import { api } from "./api";
 export const RELEASES_URL = "https://github.com/salarzeidanlou/todofy/releases/latest";
 
 const AUTO_CHECK_KEY = "update_auto_check";
+const AUTO_INSTALL_KEY = "update_auto_install";
 const LAST_CHECK_KEY = "update_last_check";
 /** The version the user has already been told about, so a daily check that
  *  keeps finding the same release only announces it once. */
@@ -42,15 +43,28 @@ interface UpdaterState {
    */
   canSelfUpdate: boolean;
   autoCheck: boolean;
+  /** Install a found update without a trip to Settings — after asking. */
+  autoInstall: boolean;
   /** Set once the user waves away a specific version's banner. */
   dismissedVersion: string | null;
+  /**
+   * The version waiting on a yes/no from the user. Set by a background check
+   * when automatic installs are on; downloading never starts without it.
+   */
+  promptVersion: string | null;
+  /** The version whose restart prompt has been waved away. */
+  restartDismissed: string | null;
 
   check: (manual?: boolean) => Promise<void>;
   install: () => Promise<void>;
   restart: () => Promise<void>;
   openReleases: () => void;
   dismiss: () => void;
+  acceptPrompt: () => Promise<void>;
+  declinePrompt: () => void;
+  dismissRestart: () => void;
   setAutoCheck: (enabled: boolean) => Promise<void>;
+  setAutoInstall: (enabled: boolean) => Promise<void>;
 }
 
 /** The pending update object; kept out of the store because it is a handle,
@@ -66,7 +80,12 @@ export const useUpdater = create<UpdaterState>((set, get) => ({
   total: 0,
   canSelfUpdate: true,
   autoCheck: true,
+  // Off unless asked for: an existing install must not start prompting to
+  // update because this feature shipped.
+  autoInstall: false,
   dismissedVersion: null,
+  promptVersion: null,
+  restartDismissed: null,
 
   check: async (manual = false) => {
     if (get().state === "checking" || get().state === "downloading") return;
@@ -94,7 +113,15 @@ export const useUpdater = create<UpdaterState>((set, get) => ({
 
       // A manual check is its own answer — the result is already on screen.
       // A background one has to reach out, since the window may be in the tray.
-      if (!manual) void announce(update.version, get().canSelfUpdate);
+      if (!manual) {
+        void announce(update.version, get().canSelfUpdate);
+        // Automatic installs still ask first. The dialog holds until the
+        // window is actually on screen, so a check that lands while todofy
+        // sits in the tray doesn't burn its one question unseen.
+        if (get().autoInstall && get().canSelfUpdate) {
+          set({ promptVersion: update.version });
+        }
+      }
     } catch (error) {
       pending = null;
       // A silent check that fails (offline, GitHub down) must stay silent.
@@ -144,12 +171,32 @@ export const useUpdater = create<UpdaterState>((set, get) => ({
 
   dismiss: () => set({ dismissedVersion: get().version }),
 
+  acceptPrompt: async () => {
+    set({ promptVersion: null });
+    await get().install();
+  },
+
+  // Declining answers for this version only; the next release asks again.
+  declinePrompt: () =>
+    set({ promptVersion: null, dismissedVersion: get().promptVersion }),
+
+  dismissRestart: () => set({ restartDismissed: get().version }),
+
   setAutoCheck: async (autoCheck) => {
     set({ autoCheck }); // optimistic
     try {
       await api.setSetting(AUTO_CHECK_KEY, autoCheck ? "true" : "false");
     } catch {
       set({ autoCheck: !autoCheck });
+    }
+  },
+
+  setAutoInstall: async (autoInstall) => {
+    set({ autoInstall }); // optimistic
+    try {
+      await api.setSetting(AUTO_INSTALL_KEY, autoInstall ? "true" : "false");
+    } catch {
+      set({ autoInstall: !autoInstall });
     }
   },
 }));
@@ -169,25 +216,41 @@ async function announce(version: string, canInstall: boolean): Promise<void> {
 }
 
 /**
- * Wire up the updater: learn what kind of install this is, then run one quiet
- * check shortly after startup — at most once a day, and never when automatic
- * checks are switched off.
+ * Wire up the updater: learn what kind of install this is, then keep a quiet
+ * daily check running — never when automatic checks are switched off.
+ *
+ * The cadence has to be a repeating one, not a single look at startup: todofy
+ * lives in the tray and an install can stay open for weeks, which is exactly
+ * the case automatic updates exist to serve.
  */
 export function initUpdater(): void {
   void (async () => {
-    const [canSelfUpdate, auto, last] = await Promise.all([
+    const [canSelfUpdate, auto, install, last] = await Promise.all([
       invoke<boolean>("can_self_update").catch(() => true),
       api.getSetting(AUTO_CHECK_KEY).catch(() => null),
+      api.getSetting(AUTO_INSTALL_KEY).catch(() => null),
       api.getSetting(LAST_CHECK_KEY).catch(() => null),
     ]);
     const autoCheck = auto !== "false";
-    useUpdater.setState({ canSelfUpdate, autoCheck });
+    useUpdater.setState({
+      canSelfUpdate,
+      autoCheck,
+      autoInstall: install === "true",
+    });
     if (!autoCheck) return;
 
     const checkedAt = Number(last);
-    if (Number.isFinite(checkedAt) && Date.now() - checkedAt < CHECK_INTERVAL_MS) return;
+    const due =
+      !Number.isFinite(checkedAt) || Date.now() - checkedAt >= CHECK_INTERVAL_MS;
 
-    setTimeout(() => void useUpdater.getState().check(), STARTUP_DELAY_MS);
+    setTimeout(() => {
+      if (due) void useUpdater.getState().check();
+      // Re-read the setting each time, so switching automatic checks off in
+      // Settings takes effect without a restart.
+      setInterval(() => {
+        if (useUpdater.getState().autoCheck) void useUpdater.getState().check();
+      }, CHECK_INTERVAL_MS);
+    }, STARTUP_DELAY_MS);
   })();
 }
 

@@ -54,13 +54,21 @@ export function Sidebar() {
   const updateState = useUpdater((state) => state.state);
   const updateVersion = useUpdater((state) => state.version);
   const updateDismissed = useUpdater((state) => state.dismissedVersion);
+  const downloaded = useUpdater((state) => state.downloaded);
+  const total = useUpdater((state) => state.total);
   const [version, setVersion] = useState("");
 
   // Only worth a permanent seat in the top bar once there's something to do
-  // about it, and only until the user has waved that version away.
+  // about it. A download in flight and a finished install always show: this is
+  // the only progress indicator outside Settings, and hiding a pending restart
+  // would strand the user on the old version.
   const showUpdate =
-    (updateState === "available" || updateState === "downloading" || updateState === "ready") &&
-    updateDismissed !== updateVersion;
+    updateState === "downloading" ||
+    updateState === "ready" ||
+    (updateState === "available" && updateDismissed !== updateVersion);
+
+  const percent =
+    total > 0 ? Math.min(100, Math.round((downloaded / total) * 100)) : null;
 
   useEffect(() => {
     getVersion()
@@ -122,19 +130,25 @@ export function Sidebar() {
           <button
             type="button"
             onClick={() => navigate({ kind: "settings" })}
-            class="top-nav-item top-update"
+            class={`top-nav-item top-update ${updateState === "downloading" ? "is-downloading" : ""}`}
             aria-label={
-              updateState === "ready"
-                ? `todofy v${updateVersion} is installed — restart to use it`
-                : `todofy v${updateVersion} is available`
+              updateState === "downloading"
+                ? `Downloading todofy v${updateVersion}${percent === null ? "" : ` — ${percent}%`}`
+                : updateState === "ready"
+                  ? `todofy v${updateVersion} is installed — restart to use it`
+                  : `todofy v${updateVersion} is available`
             }
             title={
-              updateState === "ready"
-                ? `Restart to finish updating to v${updateVersion}`
-                : `todofy v${updateVersion} is available`
+              updateState === "downloading"
+                ? `Downloading v${updateVersion}${percent === null ? "…" : ` — ${percent}%`}`
+                : updateState === "ready"
+                  ? `Restart to finish updating to v${updateVersion}`
+                  : `todofy v${updateVersion} is available`
             }
           >
-            {updateState === "ready" ? (
+            {updateState === "downloading" ? (
+              <UpdateProgress percent={percent} />
+            ) : updateState === "ready" ? (
               <RotateIcon width={20} height={20} />
             ) : (
               <DownloadIcon width={20} height={20} />
@@ -177,6 +191,39 @@ export function Sidebar() {
         </button>
       </div>
     </header>
+  );
+}
+
+/**
+ * Download progress as a ring around the update button. Falls back to an
+ * indeterminate spinner until the server has told us the total size, which
+ * some releases only report once the transfer is under way.
+ */
+function UpdateProgress({ percent }: { percent: number | null }) {
+  const radius = 8;
+  const circumference = 2 * Math.PI * radius;
+  return (
+    <svg
+      width={20}
+      height={20}
+      viewBox="0 0 20 20"
+      class={`update-ring ${percent === null ? "is-indeterminate" : ""}`}
+      aria-hidden="true"
+    >
+      <circle class="update-ring-track" cx="10" cy="10" r={radius} />
+      <circle
+        class="update-ring-value"
+        cx="10"
+        cy="10"
+        r={radius}
+        stroke-dasharray={circumference}
+        stroke-dashoffset={
+          percent === null
+            ? circumference * 0.75
+            : circumference * (1 - percent / 100)
+        }
+      />
+    </svg>
   );
 }
 

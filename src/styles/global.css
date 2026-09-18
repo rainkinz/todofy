@@ -3954,3 +3954,45 @@ body {
     padding-left: 20px;
   }
 }
+
+/* --- Update progress ring ----------------------------------------------- */
+
+.update-ring {
+  /* Start the arc at twelve o'clock rather than three. */
+  transform: rotate(-90deg);
+}
+
+.update-ring circle {
+  fill: none;
+  stroke-width: 2;
+}
+
+.update-ring-track {
+  stroke: var(--color-border-strong);
+}
+
+.update-ring-value {
+  stroke: var(--color-accent);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 220ms ease;
+}
+
+/* Until the total size is known there is no percentage to draw, so a fixed
+   arc spins instead of a bar that would sit at zero looking stalled. */
+.update-ring.is-indeterminate {
+  animation: update-ring-spin 900ms linear infinite;
+}
+
+.update-ring.is-indeterminate .update-ring-value {
+  transition: none;
+}
+
+@keyframes update-ring-spin {
+  to {
+    transform: rotate(270deg);
+  }
+}
+
+.top-update.is-downloading {
+  color: var(--color-accent);
+}
