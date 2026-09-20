@@ -20,7 +20,10 @@ export function JournalView() {
   const [sessions, setSessions] = useState<SessionLog[]>([]);
 
   useEffect(() => {
-    api.focusHistory().then(setSessions).catch(() => {});
+    api
+      .focusHistory()
+      .then(setSessions)
+      .catch(() => {});
   }, []);
 
   const groups = useMemo(() => {
@@ -37,9 +40,7 @@ export function JournalView() {
     <main class="redesign-secondary flex flex-1 flex-col overflow-hidden bg-[var(--color-bg)]">
       <header class="app-page-header shrink-0 px-8 pt-8 pb-4">
         <h2 class="text-2xl font-semibold tracking-tight">Journal</h2>
-        <p class="mt-0.5 text-sm text-[var(--color-muted)]">
-          Write and reflect on your days
-        </p>
+        <p class="mt-0.5 text-sm text-muted">Write and reflect on your days</p>
       </header>
 
       <div class="secondary-scroll mx-auto w-full max-w-2xl flex-1 overflow-y-auto px-8 pt-2 pb-10">
@@ -52,7 +53,7 @@ export function JournalView() {
         />
 
         {journal.length === 0 ? (
-          <p class="mt-10 text-center text-sm text-[var(--color-faint)]">
+          <p class="mt-10 text-center text-sm text-faint">
             No entries yet. Start writing above.
           </p>
         ) : (
@@ -62,11 +63,16 @@ export function JournalView() {
                 <div class="journal-day-heading">
                   <strong>{groupHeading(date)}</strong>
                   <span>
-                    {entries.length} {entries.length === 1 ? "entry" : "entries"}
+                    {entries.length}{" "}
+                    {entries.length === 1 ? "entry" : "entries"}
                   </span>
                 </div>
                 {entries.map((entry) => (
-                  <JournalEntry key={entry.id} entry={entry} sessions={sessions} />
+                  <JournalEntry
+                    key={entry.id}
+                    entry={entry}
+                    sessions={sessions}
+                  />
                 ))}
               </section>
             ))}

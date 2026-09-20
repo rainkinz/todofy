@@ -1,5 +1,21 @@
 # Changelog
 
+## v1.13.0 — 2026-09-20
+
+### Added
+
+- **Free, optional local voice input.** Enable Voice Mode in Settings after choosing to download the whisper.cpp engine and a multilingual speech model. Dictate tasks in the main composer or global quick capture, or dictate into a journal entry. The spoken language is detected automatically, and the transcript is inserted as editable text; Add and Save remain separate actions. Nothing downloads or requests microphone access until you opt in
+- **Recording controls inside each editor.** The microphone button opens a live, Todofy-colored waveform at the top of the same task or journal composer, with elapsed time and clear Stop and Cancel controls. Transcription shows a simple progress state in that row. The quick-capture window grows to keep the controls and draft visible while voice input is active
+
+### Changed
+
+- **Voice assets are managed in Settings.** Base and Tiny multilingual models are separate optional downloads. Settings shows download progress and installed state, offers updates and removal, and enables Voice Mode only when the engine and selected model are ready. Once installed, speech recognition runs on the device and works offline
+- Settings and Journal now load when opened, reducing the initial frontend bundle size
+
+### Security
+
+- Voice downloads use a signed catalog and verified file hashes before the downloaded engine can run. Temporary recordings are removed after transcription or cancellation, and audio is never uploaded for recognition
+
 ## v1.12.1 — 2026-09-18
 
 ### Fixed

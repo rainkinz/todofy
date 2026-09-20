@@ -15,6 +15,7 @@ mod sync;
 mod timer;
 mod tray;
 mod update;
+mod voice;
 
 use db::Db;
 use rusqlite::Connection;
@@ -35,6 +36,7 @@ const AUTOSTART_FLAG: &str = "--autostart";
 pub fn run() {
     tauri::Builder::default()
         .manage(auth_oauth::SupabaseOAuthState::default())
+        .manage(voice::VoiceState::new())
         // Must be the FIRST plugin: if todofy is already running, a second
         // launch focuses the existing window instead of starting a new one.
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
@@ -86,6 +88,7 @@ pub fn run() {
             let conn = Connection::open(dir.join("todofy.db")).expect("failed to open database");
             db::init(&conn).expect("failed to initialize schema");
             app.manage(Db(Mutex::new(conn)));
+            voice::cleanup_temp(app.handle());
 
             // The main window starts hidden (visible:false in tauri.conf.json)
             // so a login launch can go straight to the tray without a flash.
@@ -213,6 +216,17 @@ pub fn run() {
             update::can_self_update,
             update::notify_update,
             popup::notify_popup_open_update,
+            voice::voice_status,
+            voice::voice_input_level,
+            voice::voice_catalog_refresh,
+            voice::voice_asset_download,
+            voice::voice_asset_cancel,
+            voice::voice_asset_remove,
+            voice::voice_mode_set,
+            voice::voice_model_set,
+            voice::voice_record_start,
+            voice::voice_record_stop,
+            voice::voice_record_cancel,
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")

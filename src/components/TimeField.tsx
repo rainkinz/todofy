@@ -33,7 +33,9 @@ export function TimeField({
 }: Props) {
   const hour12 = usesHour12();
   const initial = parseClock(value);
-  const [hourText, setHourText] = useState(() => clockHourText(initial, hour12));
+  const [hourText, setHourText] = useState(() =>
+    clockHourText(initial, hour12),
+  );
   const [minuteText, setMinuteText] = useState(() =>
     initial ? pad(initial.m) : "",
   );
@@ -94,10 +96,7 @@ export function TimeField({
     commit(hourText, text, pm);
   };
 
-  const onKeyDown = (
-    event: KeyboardEvent,
-    segment: "hour" | "minute",
-  ) => {
+  const onKeyDown = (event: KeyboardEvent, segment: "hour" | "minute") => {
     if (event.key === "ArrowUp" || event.key === "ArrowDown") {
       event.preventDefault();
       step(segment, event.key === "ArrowUp" ? 1 : -1);
@@ -150,15 +149,16 @@ export function TimeField({
   // 3ch, not 2: `ch` is the width of a zero and the "HH"/"MM" placeholders are
   // wider than the digits they stand in for.
   const segment =
-    "w-[3ch] bg-transparent text-center text-sm tabular-nums text-[var(--color-text)] outline-none placeholder:text-[var(--color-faint)]";
-  const name = (part: string) => (label ? `${label} ${part.toLowerCase()}` : part);
+    "w-[3ch] bg-transparent text-center text-sm tabular-nums text-text outline-none placeholder:text-faint";
+  const name = (part: string) =>
+    label ? `${label} ${part.toLowerCase()}` : part;
 
   return (
     <div
       class={`flex flex-1 items-center justify-center gap-1 rounded-lg border bg-[var(--color-bg)] px-3 py-2 focus-within:ring-1 ${
         invalid
           ? "border-[var(--color-danger)] ring-1 ring-[var(--color-danger)] focus-within:ring-[var(--color-danger)]"
-          : "border-[var(--color-border)] focus-within:ring-[var(--color-accent)]"
+          : "border-border focus-within:ring-[var(--color-accent)]"
       }`}
     >
       <input
@@ -173,7 +173,7 @@ export function TimeField({
         onBlur={onBlur}
         class={segment}
       />
-      <span class="text-sm text-[var(--color-faint)]">:</span>
+      <span class="text-sm text-faint">:</span>
       <input
         ref={minuteRef}
         type="text"
@@ -190,7 +190,7 @@ export function TimeField({
       {hour12 && (
         // Two explicit options, not a toggle: a lone "AM" reads as a label and
         // leaves the user guessing whether it's the state or the action.
-        <div class="ml-1.5 flex items-center gap-0.5 rounded-md bg-[var(--color-surface-2)] p-0.5">
+        <div class="ml-1.5 flex items-center gap-0.5 rounded-md bg-surface-2 p-0.5">
           {[false, true].map((afternoon) => (
             <button
               key={afternoon ? "PM" : "AM"}
@@ -200,7 +200,7 @@ export function TimeField({
               class={`rounded px-1.5 py-0.5 text-[10px] font-medium transition-colors ${
                 afternoon === pm
                   ? "bg-[var(--color-accent)] text-white"
-                  : "text-[var(--color-muted)] hover:text-[var(--color-text)]"
+                  : "text-muted hover:text-text"
               }`}
             >
               {afternoon ? "PM" : "AM"}

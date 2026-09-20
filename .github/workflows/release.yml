@@ -106,6 +106,12 @@ jobs:
           if (!updater.pubkey) {
             throw new Error('plugins.updater.pubkey is missing');
           }
+          const updaterPublicKey = Buffer.from(updater.pubkey, 'base64').toString('utf8').match(/^RW\S+/m)?.[0];
+          const voiceSource = fs.readFileSync('./src-tauri/src/voice/assets.rs', 'utf8');
+          const voicePublicKey = voiceSource.match(/const PUBLIC_KEY: &str = "([^"]+)"/)?.[1];
+          if (!updaterPublicKey || voicePublicKey !== updaterPublicKey) {
+            throw new Error('Voice catalog public key must match the updater signing key');
+          }
           if (!updater.endpoints?.some((url) => url.startsWith('https://'))) {
             throw new Error('plugins.updater.endpoints must hold an HTTPS endpoint');
           }
@@ -159,7 +165,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             libwebkit2gtk-4.1-dev build-essential curl wget file \
-            libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+            libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev \
+            libasound2-dev
 
       - uses: oven-sh/setup-bun@v2
 
@@ -232,7 +239,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             libwebkit2gtk-4.1-dev build-essential curl wget file \
-            libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+            libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev \
+            libasound2-dev
 
       - uses: oven-sh/setup-bun@v2
 
@@ -274,15 +282,81 @@ jobs:
           # three parallel jobs each merging their own copy would race.
           includeUpdaterJson: false
 
+  voice-engine:
+    needs: [check, validate, release]
+    if: needs.check.outputs.release == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ubuntu-22.04
+            asset: voice-engine-linux-x86_64
+          - platform: macos-latest
+            asset: voice-engine-darwin-universal
+          - platform: windows-latest
+            asset: voice-engine-windows-x86_64.exe
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - name: Build pinned CPU-only whisper.cpp helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch v1.9.3 https://github.com/ggml-org/whisper.cpp.git whisper-src
+          test "$(git -C whisper-src rev-parse HEAD)" = 371b5a7561823ab2bb32142d2751e35e7534727b
+          CMAKE_ARGS=()
+          if [[ "${{ matrix.platform }}" == macos-* ]]; then
+            CMAKE_ARGS+=("-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64")
+          fi
+          cmake -S whisper-src -B whisper-build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DGGML_NATIVE=OFF \
+            -DGGML_OPENMP=OFF \
+            -DGGML_METAL=OFF \
+            -DGGML_CUDA=OFF \
+            -DGGML_SSE42=OFF \
+            -DGGML_AVX=OFF \
+            -DGGML_AVX2=OFF \
+            -DGGML_BMI2=OFF \
+            -DGGML_FMA=OFF \
+            -DGGML_F16C=OFF \
+            -DWHISPER_BUILD_TESTS=OFF \
+            -DWHISPER_BUILD_EXAMPLES=ON \
+            "${CMAKE_ARGS[@]}"
+          cmake --build whisper-build --config Release --target whisper-cli --parallel 2
+          if [[ "${{ matrix.platform }}" == windows-* ]]; then
+            BIN=$(find whisper-build -name whisper-cli.exe -type f | head -1)
+          else
+            BIN=$(find whisper-build -name whisper-cli -type f | head -1)
+          fi
+          test -n "$BIN"
+          if [[ "${{ matrix.platform }}" == macos-* ]]; then
+            lipo -verify_arch x86_64 arm64 "$BIN"
+          fi
+          cp "$BIN" '${{ matrix.asset }}'
+
+      - name: Upload optional voice engine
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.check.outputs.version }}
+          REPO: ${{ github.repository }}
+        run: gh release upload "v$VERSION" '${{ matrix.asset }}' --repo "$REPO" --clobber
+
   # Writes the latest.json the in-app updater polls. It must land before the
   # release leaves draft, or the first person to check would be told there is
   # no update.
   manifest:
-    needs: [check, validate, release]
+    needs: [check, validate, release, voice-engine]
     if: needs.check.outputs.release == 'true'
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v5
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install signing CLI
+        run: bun install --frozen-lockfile
 
       - name: Compose the updater manifest
         env:
@@ -353,6 +427,91 @@ jobs:
           NODE
 
           gh release upload "$TAG" latest.json --repo "$REPO" --clobber
+
+      - name: Download and publish optional speech models
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.check.outputs.version }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for MODEL in tiny base; do
+            case "$MODEL" in
+              tiny) EXPECTED_SHA1=bd577a113a864445d4c299885e0cb97d4ba92b5f ;;
+              base) EXPECTED_SHA1=465707469ff3a37a2b9b8d8f89f2f99de7299dac ;;
+            esac
+            curl --fail --location --show-error --silent --retry 3 \
+              "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-$MODEL.bin" \
+              --output "voice-model-$MODEL.ggml"
+            test "$(wc -c < "voice-model-$MODEL.ggml")" -gt 1000000
+            test "$(sha1sum "voice-model-$MODEL.ggml" | cut -d' ' -f1)" = "$EXPECTED_SHA1"
+            gh release upload "v$VERSION" "voice-model-$MODEL.ggml" --repo "$REPO" --clobber
+          done
+
+      - name: Compose and sign the voice catalog
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.check.outputs.version }}
+          REPO: ${{ github.repository }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="v$VERSION"
+          mkdir -p voice-engine-files
+          gh release download "$TAG" --repo "$REPO" --dir voice-engine-files --pattern 'voice-engine-*'
+          curl --fail --location --show-error --silent --retry 3 \
+            'https://raw.githubusercontent.com/ggml-org/whisper.cpp/371b5a7561823ab2bb32142d2751e35e7534727b/samples/jfk.wav' \
+            --output voice-smoke.wav
+          chmod 700 voice-engine-files/voice-engine-linux-x86_64
+          voice-engine-files/voice-engine-linux-x86_64 \
+            -m voice-model-tiny.ggml -f voice-smoke.wav -l en -oj -of voice-smoke -np
+          node <<'NODE'
+          const fs = require('node:fs');
+          const output = JSON.parse(fs.readFileSync('voice-smoke.json', 'utf8'));
+          if (!Array.isArray(output.transcription) ||
+              !output.transcription.some((segment) => segment.text?.trim())) {
+            throw new Error('Voice helper did not produce a transcript');
+          }
+          NODE
+          node <<'NODE'
+          const fs = require('node:fs');
+          const crypto = require('node:crypto');
+          const { VERSION, REPO } = process.env;
+          const tag = `v${VERSION}`;
+          function asset(path, name) {
+            const bytes = fs.readFileSync(path);
+            return {
+              url: `https://github.com/${REPO}/releases/download/${tag}/${name}`,
+              size: bytes.length,
+              sha256: crypto.createHash('sha256').update(bytes).digest('hex'),
+            };
+          }
+          const linux = asset('voice-engine-files/voice-engine-linux-x86_64', 'voice-engine-linux-x86_64');
+          const mac = asset('voice-engine-files/voice-engine-darwin-universal', 'voice-engine-darwin-universal');
+          const windows = asset('voice-engine-files/voice-engine-windows-x86_64.exe', 'voice-engine-windows-x86_64.exe');
+          const catalog = {
+            schema: 1,
+            version: VERSION,
+            engines: {
+              'linux-x86_64': linux,
+              'darwin-x86_64': mac,
+              'darwin-aarch64': mac,
+              'windows-x86_64': windows,
+            },
+            models: {
+              tiny: asset('voice-model-tiny.ggml', 'voice-model-tiny.ggml'),
+              base: asset('voice-model-base.ggml', 'voice-model-base.ggml'),
+            },
+          };
+          fs.writeFileSync('voice-catalog.json', JSON.stringify(catalog, null, 2));
+          NODE
+          bunx tauri signer sign voice-catalog.json
+          test -s voice-catalog.json.sig
+          gh release upload "$TAG" voice-catalog.json voice-catalog.json.sig --repo "$REPO" --clobber
+          gh release upload "$TAG" docs/third_party/whisper.cpp.LICENSE docs/third_party/openai-whisper.LICENSE --repo "$REPO" --clobber
 
   publish:
     needs: [check, validate, release, manifest]

@@ -52,7 +52,8 @@ export function FocusWidget() {
     const onPointerDown = (e: PointerEvent) => {
       const target = e.target as Node;
       if (rootRef.current?.contains(target)) return;
-      if (target instanceof Element && target.closest("[data-focus-toggle]")) return;
+      if (target instanceof Element && target.closest("[data-focus-toggle]"))
+        return;
       toggleFocus();
     };
     document.addEventListener("pointerdown", onPointerDown);
@@ -92,21 +93,21 @@ export function FocusWidget() {
       class="fixed bottom-4 left-4 z-50 w-72 animate-fade-rise overflow-hidden rounded-2xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] shadow-2xl shadow-black/50"
     >
       {/* Header */}
-      <div class="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-2.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-[var(--color-faint)]">
+      <div class="flex items-center justify-between border-b border-border px-4 py-2.5">
+        <span class="text-xs font-semibold uppercase tracking-wider text-faint">
           {p ? "Focus" : "Tracking"}
         </span>
         <div class="flex items-center gap-1">
           <button
             onClick={() => setView({ kind: "focus" })}
-            class="text-[var(--color-faint)] hover:text-[var(--color-text)]"
+            class="text-faint hover:text-text"
             title="Open focus screen"
           >
             <ExpandIcon width={15} height={15} />
           </button>
           <button
             onClick={toggleFocus}
-            class="text-[var(--color-faint)] hover:text-[var(--color-text)]"
+            class="text-faint hover:text-text"
             title="Hide"
           >
             <CloseIcon width={16} height={16} />
@@ -120,8 +121,8 @@ export function FocusWidget() {
           <span
             class={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
               p.phase === "focus"
-                ? "bg-[var(--color-accent-soft)] text-[var(--color-accent)]"
-                : "bg-[var(--color-surface-2)] text-[var(--color-success)]"
+                ? "bg-accent-soft text-(--color-accent)"
+                : "bg-surface-2 text-[var(--color-success)]"
             }`}
           >
             {PHASE_LABEL[p.phase]}
@@ -129,15 +130,16 @@ export function FocusWidget() {
 
           <span
             class={`font-mono text-4xl font-semibold tabular-nums ${
-              overtime ? "text-[var(--color-warning)]" : "text-[var(--color-text)]"
+              overtime ? "text-[var(--color-warning)]" : "text-text"
             }`}
           >
             {clock(remaining)}
           </span>
 
           {p.completedFocus > 0 && (
-            <span class="text-[11px] text-[var(--color-faint)]">
-              {p.completedFocus} focus session{p.completedFocus === 1 ? "" : "s"} done
+            <span class="text-[11px] text-faint">
+              {p.completedFocus} focus session
+              {p.completedFocus === 1 ? "" : "s"} done
             </span>
           )}
 
@@ -145,7 +147,7 @@ export function FocusWidget() {
             <button
               onClick={pomodoroReset}
               title="Reset phase"
-              class="grid h-9 w-9 place-items-center rounded-full text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+              class="grid h-9 w-9 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-text"
             >
               <RotateIcon width={16} height={16} />
             </button>
@@ -163,7 +165,7 @@ export function FocusWidget() {
             <button
               onClick={pomodoroNext}
               title="Skip to next phase"
-              class="grid h-9 w-9 place-items-center rounded-full text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+              class="grid h-9 w-9 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-text"
             >
               <SkipIcon width={16} height={16} />
             </button>
@@ -173,7 +175,7 @@ export function FocusWidget() {
 
       {/* Active task stopwatch */}
       {activeTimer && (
-        <div class="flex items-center gap-3 border-t border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3">
+        <div class="flex items-center gap-3 border-t border-border bg-[var(--color-surface)] px-4 py-3">
           <span class="relative flex h-2.5 w-2.5 shrink-0">
             {/* The pulse means "still counting", so a paused dot holds still. */}
             {!taskPaused && (
@@ -181,7 +183,9 @@ export function FocusWidget() {
             )}
             <span
               class={`relative inline-flex h-2.5 w-2.5 rounded-full ${
-                taskPaused ? "bg-[var(--color-muted)]" : "bg-[var(--color-danger)]"
+                taskPaused
+                  ? "bg-[var(--color-muted)]"
+                  : "bg-[var(--color-danger)]"
               }`}
             />
           </span>
@@ -190,10 +194,10 @@ export function FocusWidget() {
             class="min-w-0 flex-1 text-left"
             title="Open task"
           >
-            <p class="truncate text-sm text-[var(--color-text)]">{activeTimer.title}</p>
+            <p class="truncate text-sm text-text">{activeTimer.title}</p>
             <p
               class={`font-mono text-xs tabular-nums ${
-                taskOver > 0 ? "text-[var(--color-danger)]" : "text-[var(--color-muted)]"
+                taskOver > 0 ? "text-(--color-danger)" : "text-muted"
               }`}
             >
               {formatDuration(activeElapsed)}
@@ -204,14 +208,18 @@ export function FocusWidget() {
           <button
             onClick={taskPaused ? resumeTaskTimer : pauseTaskTimer}
             title={taskPaused ? "Resume tracking" : "Pause tracking"}
-            class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+            class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-text"
           >
-            {taskPaused ? <PlayIcon width={18} height={18} /> : <PauseIcon width={18} height={18} />}
+            {taskPaused ? (
+              <PlayIcon width={18} height={18} />
+            ) : (
+              <PauseIcon width={18} height={18} />
+            )}
           </button>
           <button
             onClick={stopTaskTimer}
             title="Stop tracking"
-            class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[var(--color-danger)] transition-colors hover:bg-[var(--color-surface-2)]"
+            class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-(--color-danger) transition-colors hover:bg-surface-2"
           >
             <StopIcon width={18} height={18} />
           </button>

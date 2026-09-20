@@ -77,11 +77,11 @@ export function LabelForm({
         onInput={(e) => setName(e.currentTarget.value)}
         onKeyDown={(e) => e.key === "Escape" && onCancel()}
         placeholder="Label name"
-        class="rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm outline-none transition-colors focus:border-[var(--color-accent)]"
+        class="rounded-lg border border-border bg-[var(--color-bg)] px-3 py-2 text-sm outline-none transition-colors focus:border-(--color-accent)"
       />
 
       <div class="flex flex-col gap-2">
-        <span class="text-[10px] font-semibold uppercase tracking-wider text-[var(--color-faint)]">
+        <span class="text-[10px] font-semibold uppercase tracking-wider text-faint">
           Color
         </span>
 
@@ -113,19 +113,19 @@ export function LabelForm({
           ))}
         </div>
 
-        <div class="flex items-center gap-2 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-2.5 py-1.5 transition-colors focus-within:border-[var(--color-accent)]">
+        <div class="flex items-center gap-2 rounded-lg border border-border bg-[var(--color-bg)] px-2.5 py-1.5 transition-colors focus-within:border-(--color-accent)">
           <span
             class="h-6 w-6 shrink-0 rounded-md shadow-[inset_0_0_0_1px_rgba(0,0,0,0.2)]"
             style={{ background: color }}
           />
-          <span class="text-sm text-[var(--color-faint)]">#</span>
+          <span class="text-sm text-faint">#</span>
           <input
             value={hexInput}
             onInput={(e) => editHex(e.currentTarget.value)}
             onBlur={() => setHexInput(color.replace("#", ""))}
             placeholder="6c7cff"
             maxLength={6}
-            class="w-full bg-transparent text-sm font-mono uppercase tracking-wide text-[var(--color-text)] outline-none placeholder:normal-case placeholder:text-[var(--color-faint)]"
+            class="w-full bg-transparent text-sm font-mono uppercase tracking-wide text-text outline-none placeholder:normal-case placeholder:text-faint"
           />
         </div>
       </div>
@@ -134,7 +134,7 @@ export function LabelForm({
         <button
           type="button"
           onClick={onCancel}
-          class="rounded-lg px-3 py-1.5 text-xs font-medium text-[var(--color-faint)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+          class="rounded-lg px-3 py-1.5 text-xs font-medium text-faint transition-colors hover:bg-surface-2 hover:text-text"
         >
           Cancel
         </button>

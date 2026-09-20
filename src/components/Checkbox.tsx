@@ -31,9 +31,11 @@ export function Checkbox({
     ...(checked ? { backgroundColor: color, borderColor: color } : {}),
   };
   const cls = `grid shrink-0 place-items-center border-2 transition-colors ${
-    checked ? "text-white" : "border-[var(--color-border-strong)] text-transparent"
+    checked
+      ? "text-white"
+      : "border-[var(--color-border-strong)] text-transparent"
   } ${interactive ? "disabled:opacity-50" : "pointer-events-none"} ${
-    interactive && !checked ? "hover:border-[var(--color-accent)]" : ""
+    interactive && !checked ? "hover:border-(--color-accent)" : ""
   }`;
   const mark = checked ? (
     <CheckIcon width={check} height={check} stroke-width={3} />

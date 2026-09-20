@@ -31,11 +31,12 @@ export function SyncAccountDialog() {
       aria-labelledby="sync-account-title"
     >
       <div class="w-full max-w-md animate-fade-rise rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] p-5 shadow-2xl shadow-black/50">
-        <h3 id="sync-account-title" class="text-base font-semibold text-[var(--color-text)]">
+        <h3 id="sync-account-title" class="text-base font-semibold text-text">
           Choose data for this account
         </h3>
-        <p class="mt-1.5 text-sm leading-relaxed text-[var(--color-muted)]">
-          This device already has tasks linked to another account. Before syncing
+        <p class="mt-1.5 text-sm leading-relaxed text-muted">
+          This device already has tasks linked to another account. Before
+          syncing
           {email ? ` ${email}` : " this account"}, choose what Todofy should do.
         </p>
 
@@ -45,47 +46,47 @@ export function SyncAccountDialog() {
             onClick={() => choose("copy-local")}
             disabled={busy !== null}
             autoFocus
-            class="rounded-xl border border-[var(--color-accent)] bg-[var(--color-accent-soft)] px-4 py-3 text-left transition-colors hover:brightness-110 disabled:opacity-60"
+            class="rounded-xl border border-(--color-accent) bg-accent-soft px-4 py-3 text-left transition-colors hover:brightness-110 disabled:opacity-60"
           >
-            <span class="block text-sm font-semibold text-[var(--color-text)]">
+            <span class="block text-sm font-semibold text-text">
               Copy this device's data
             </span>
-            <span class="mt-0.5 block text-xs leading-relaxed text-[var(--color-muted)]">
-              Keep local tasks, labels, focus history, and journal entries and add
-              independent copies to this account.
+            <span class="mt-0.5 block text-xs leading-relaxed text-muted">
+              Keep local tasks, labels, focus history, and journal entries and
+              add independent copies to this account.
             </span>
           </button>
           <button
             type="button"
             onClick={() => choose("account")}
             disabled={busy !== null}
-            class="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 text-left transition-colors hover:bg-[var(--color-surface-2)] disabled:opacity-60"
+            class="rounded-xl border border-border bg-[var(--color-surface)] px-4 py-3 text-left transition-colors hover:bg-surface-2 disabled:opacity-60"
           >
-            <span class="block text-sm font-semibold text-[var(--color-text)]">
+            <span class="block text-sm font-semibold text-text">
               Use this account's data
             </span>
-            <span class="mt-0.5 block text-xs leading-relaxed text-[var(--color-muted)]">
-              Remove the device's synced tasks and load this account's cloud data.
-              Standalone calendar events stay on this device.
+            <span class="mt-0.5 block text-xs leading-relaxed text-muted">
+              Remove the device's synced tasks and load this account's cloud
+              data. Standalone calendar events stay on this device.
             </span>
           </button>
         </div>
 
         {error && (
-          <p class="mt-3 rounded-lg bg-[color-mix(in_srgb,var(--color-danger)_12%,transparent)] px-3 py-2 text-xs text-[var(--color-danger)]">
+          <p class="mt-3 rounded-lg bg-[color-mix(in_srgb,var(--color-danger)_12%,transparent)] px-3 py-2 text-xs text-(--color-danger)">
             {error}
           </p>
         )}
 
         <div class="mt-4 flex items-center justify-between">
-          <span class="text-[11px] text-[var(--color-faint)]">
+          <span class="text-[11px] text-faint">
             Nothing is uploaded until you choose.
           </span>
           <button
             type="button"
             onClick={cancel}
             disabled={busy !== null}
-            class="rounded-lg px-3 py-1.5 text-sm text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)] disabled:opacity-60"
+            class="rounded-lg px-3 py-1.5 text-sm text-muted transition-colors hover:bg-surface-2 hover:text-text disabled:opacity-60"
           >
             Sign out
           </button>

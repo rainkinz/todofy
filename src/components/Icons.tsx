@@ -29,6 +29,7 @@ import {
   LightningIcon,
   ListIcon as PhListIcon,
   MagnifyingGlassIcon,
+  MicrophoneIcon as PhMicrophoneIcon,
   MoonIcon as PhMoonIcon,
   NotebookIcon as PhNotebookIcon,
   NotePencilIcon,
@@ -68,7 +69,7 @@ function icon(Icon: PhosphorIcon, defaultWeight: "regular" | "bold" | "fill" = "
       <Icon
         size={Number(width ?? height ?? 18)}
         weight={numericStroke >= 2.5 ? "bold" : defaultWeight}
-        className={className as string | undefined}
+        {...{ className }}
         {...(rest as Record<string, unknown>)}
       />
     );
@@ -121,6 +122,7 @@ export const CloudIcon = icon(PhCloudIcon);
 export const CrownIcon = icon(CrownSimpleIcon);
 export const DevicesIcon = icon(PhDevicesIcon);
 export const DownloadIcon = icon(DownloadSimpleIcon);
+export const MicrophoneIcon = icon(PhMicrophoneIcon);
 export const KeyIcon = icon(PhKeyIcon);
 export const ShieldCheckIcon = icon(PhShieldCheckIcon);
 

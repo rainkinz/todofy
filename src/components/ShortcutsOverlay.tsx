@@ -39,13 +39,13 @@ export function ShortcutsOverlay() {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        class="w-full max-w-md overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-xl shadow-black/30"
+        class="w-full max-w-md overflow-hidden rounded-2xl border border-border bg-[var(--color-surface)] shadow-xl shadow-black/30"
       >
-        <div class="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-3.5">
+        <div class="flex items-center justify-between border-b border-border px-5 py-3.5">
           <h2 class="text-sm font-semibold">Keyboard shortcuts</h2>
           <button
             onClick={() => close(false)}
-            class="rounded-md p-1 text-[var(--color-faint)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+            class="rounded-md p-1 text-faint transition-colors hover:bg-surface-2 hover:text-text"
             title="Close"
           >
             <CloseIcon width={18} height={18} />
@@ -65,7 +65,7 @@ export function ShortcutsOverlay() {
 function Group({ title, rows }: { title: string; rows: Shortcut[] }) {
   return (
     <div class="mb-4 last:mb-0">
-      <p class="mb-1.5 text-xs font-semibold uppercase tracking-wider text-[var(--color-faint)]">
+      <p class="mb-1.5 text-xs font-semibold uppercase tracking-wider text-faint">
         {title}
       </p>
       <div class="flex flex-col">
@@ -74,12 +74,12 @@ function Group({ title, rows }: { title: string; rows: Shortcut[] }) {
             key={r.desc}
             class="flex items-center justify-between gap-4 py-1.5"
           >
-            <span class="text-sm text-[var(--color-muted)]">{r.desc}</span>
+            <span class="text-sm text-muted">{r.desc}</span>
             <span class="flex shrink-0 items-center gap-1">
               {r.keys.map((k) => (
                 <kbd
                   key={k}
-                  class="rounded border border-[var(--color-border)] bg-[var(--color-surface-2)] px-1.5 py-0.5 text-xs font-medium text-[var(--color-muted)]"
+                  class="rounded border border-border bg-surface-2 px-1.5 py-0.5 text-xs font-medium text-muted"
                 >
                   {k}
                 </kbd>

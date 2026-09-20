@@ -1,4 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
+import { lazy, Suspense } from "preact/compat";
 import { applySearchAndFilters, tasksForView, useStore } from "../store";
 import { sectionsForView } from "../lib/grouping";
 import { completionStats } from "../lib/streak";
@@ -7,9 +8,7 @@ import { QuickAdd } from "./QuickAdd";
 import { TaskItem } from "./TaskItem";
 import { TaskSection } from "./TaskSection";
 import { LabelsView } from "./LabelsView";
-import { SettingsView } from "./SettingsView";
 import { FocusView } from "./FocusView";
-import { JournalView } from "./JournalView";
 import { CalendarView } from "./CalendarView";
 import { BoardView } from "./BoardView";
 import { SearchBar } from "./SearchBar";
@@ -17,6 +16,13 @@ import { TaskDetail } from "./TaskDetail";
 import { ChevronLeftIcon, ChevronRightIcon, InboxIcon } from "./Icons";
 
 const COMPLETED_PAGE_SIZE = 15;
+
+const SettingsView = lazy(() =>
+  import("./SettingsView").then(({ SettingsView }) => ({ default: SettingsView })),
+);
+const JournalView = lazy(() =>
+  import("./JournalView").then(({ JournalView }) => ({ default: JournalView })),
+);
 
 function viewTitle(view: ViewId, labelName?: string): string {
   switch (view.kind) {
@@ -111,11 +117,23 @@ export function TaskList() {
   }, [view.kind, searchQuery, filterLabelIds.join(","), filterPriorities.join(",")]);
 
   if (view.kind === "labels") return <LabelsView />;
-  if (view.kind === "settings") return <SettingsView />;
   if (view.kind === "focus") return <FocusView />;
-  if (view.kind === "journal") return <JournalView />;
   if (view.kind === "calendar") return <CalendarView />;
   if (view.kind === "board") return <BoardView />;
+  if (view.kind === "settings" || view.kind === "journal") {
+    return (
+      <Suspense
+        fallback={
+          <main class="redesign-main" aria-busy="true">
+            <div class="task-page-scroll" role="status">Opening view…</div>
+          </main>
+        }
+      >
+        {view.kind === "settings" && <SettingsView />}
+        {view.kind === "journal" && <JournalView />}
+      </Suspense>
+    );
+  }
 
   const labelName =
     view.kind === "label"

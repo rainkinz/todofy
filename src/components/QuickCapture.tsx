@@ -1,6 +1,6 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
-import { getCurrentWindow } from "@tauri-apps/api/window";
+import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
 import { emit } from "@tauri-apps/api/event";
 import { api } from "../lib/api";
 import { parseQuickAdd } from "../lib/nlp";
@@ -8,6 +8,8 @@ import { repeatLabel } from "../lib/repeat";
 import { combineDateTime, formatDue, formatTime, today } from "../lib/dates";
 import type { Label, NewTask } from "../types";
 import { BellIcon, CalendarIcon, FlagIcon, Logo, RepeatIcon } from "./Icons";
+import { VoiceInputButton } from "./VoiceInputButton";
+import { insertTranscript } from "../lib/voice";
 
 const PRIORITY_COLOR: Record<number, string> = {
   1: "var(--color-prio-1)",
@@ -26,7 +28,10 @@ export function QuickCapture() {
   const [title, setTitle] = useState("");
   const [labels, setLabels] = useState<Label[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const voicePanelRef = useRef<HTMLDivElement>(null);
   const shownAt = useRef(Date.now());
+  const voiceBusy = useRef(false);
+  const [busy, setBusy] = useState(false);
 
   const parsed = useMemo(() => parseQuickAdd(title, labels), [title, labels]);
   const hasChips =
@@ -47,7 +52,7 @@ export function QuickCapture() {
   const submit = async (e: Event) => {
     e.preventDefault();
     const finalTitle = parsed.title.trim();
-    if (!finalTitle) return;
+    if (!finalTitle || voiceBusy.current) return;
 
     const finalTime = parsed.time;
     // A time or a recurrence needs a date to anchor to — default to today.
@@ -98,7 +103,7 @@ export function QuickCapture() {
     const unFocus = win.onFocusChanged(({ payload: focused }) => {
       if (focused) {
         focusInput();
-      } else if (Date.now() - shownAt.current > 200) {
+      } else if (!voiceBusy.current && Date.now() - shownAt.current > 200) {
         dismiss();
       }
     });
@@ -110,6 +115,13 @@ export function QuickCapture() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    const win = getCurrentWindow();
+    void win.setSize(new LogicalSize(640, busy ? 300 : 210))
+      .then(() => win.center())
+      .catch(() => {});
+  }, [busy]);
+
   return (
     <div class="quick-capture-stage">
       <form onSubmit={submit} class="quick-capture-card animate-fade-rise">
@@ -120,13 +132,14 @@ export function QuickCapture() {
           </div>
           <span>todofy</span>
         </header>
+        <div ref={voicePanelRef} class="voice-capture-host" />
         <div class="quick-capture-input-row">
           <input
             ref={inputRef}
             value={title}
             onInput={(e) => setTitle(e.currentTarget.value)}
             onKeyDown={(e) => {
-              if (e.key === "Escape") {
+              if (e.key === "Escape" && !voiceBusy.current) {
                 e.preventDefault();
                 dismiss();
               }
@@ -134,9 +147,21 @@ export function QuickCapture() {
             placeholder="What needs doing?  Try “pay rent Friday 5pm”"
             class="quick-capture-input"
           />
+          <VoiceInputButton kind="task" compactWindow getPanelHost={() => voicePanelRef.current} onBusyChange={(next) => {
+            voiceBusy.current = next;
+            setBusy(next);
+          }} onTranscript={(text) => {
+            const input = inputRef.current;
+            const next = insertTranscript(title, text, input?.selectionStart ?? title.length, input?.selectionEnd ?? title.length);
+            setTitle(next.value);
+            requestAnimationFrame(() => {
+              input?.focus();
+              input?.setSelectionRange(next.caret, next.caret);
+            });
+          }} />
           <button
             type="submit"
-            disabled={!parsed.title.trim()}
+            disabled={!parsed.title.trim() || busy}
             class="quick-capture-submit"
           >
             Add task <kbd>↵</kbd>

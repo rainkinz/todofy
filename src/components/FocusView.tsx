@@ -4,13 +4,7 @@ import type { PomodoroPhase, SessionLog } from "../types";
 import { api } from "../lib/api";
 import { clock, formatDuration, secondsSince } from "../lib/duration";
 import { toLocalDate, today } from "../lib/dates";
-import {
-  PauseIcon,
-  PlayIcon,
-  RotateIcon,
-  SkipIcon,
-  TimerIcon,
-} from "./Icons";
+import { PauseIcon, PlayIcon, RotateIcon, SkipIcon, TimerIcon } from "./Icons";
 
 const PHASE_LABEL: Record<PomodoroPhase, string> = {
   focus: "Focus",
@@ -34,7 +28,10 @@ export function FocusView() {
 
   // Reload history whenever a session ends (activeTimer transitions to null).
   useEffect(() => {
-    api.focusHistory().then(setHistory).catch(() => {});
+    api
+      .focusHistory()
+      .then(setHistory)
+      .catch(() => {});
   }, [activeTimer]);
 
   // Tick while the Pomodoro runs so the countdown updates.
@@ -55,31 +52,33 @@ export function FocusView() {
     <main class="redesign-secondary focus-main flex flex-1 flex-col overflow-hidden bg-[var(--color-bg)]">
       <header class="app-page-header shrink-0 px-8 pt-8 pb-4">
         <h2 class="text-2xl font-semibold tracking-tight">Focus</h2>
-        <p class="mt-0.5 text-sm text-[var(--color-muted)]">
+        <p class="mt-0.5 text-sm text-muted">
           Run a Pomodoro, tune its lengths, and review your focus history
         </p>
       </header>
 
       <div class="secondary-scroll focus-content mx-auto w-full max-w-2xl flex-1 overflow-y-auto px-8 pt-2 pb-8">
         {p && (
-          <section class="focus-timer-panel mb-6 flex flex-col items-center gap-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] px-6 py-8">
+          <section class="focus-timer-panel mb-6 flex flex-col items-center gap-4 rounded-2xl border border-border bg-[var(--color-surface)] px-6 py-8">
             <div class="focus-panel-topline">
               <span
                 class={`focus-phase ${
-                p.phase === "focus"
-                  ? "bg-[var(--color-accent-soft)] text-[var(--color-accent)]"
-                  : "bg-[var(--color-surface-2)] text-[var(--color-success)]"
-              }`}
+                  p.phase === "focus"
+                    ? "bg-accent-soft text-(--color-accent)"
+                    : "bg-surface-2 text-[var(--color-success)]"
+                }`}
               >
                 <TimerIcon width={14} height={14} />
                 {PHASE_LABEL[p.phase]} session
               </span>
-              <span>Round {p.completedFocus % p.longEvery + 1} of {p.longEvery}</span>
+              <span>
+                Round {(p.completedFocus % p.longEvery) + 1} of {p.longEvery}
+              </span>
             </div>
 
             <span
               class={`focus-clock ${
-                overtime ? "text-[var(--color-warning)]" : "text-[var(--color-text)]"
+                overtime ? "text-[var(--color-warning)]" : "text-text"
               }`}
             >
               {clock(remaining)}
@@ -93,7 +92,7 @@ export function FocusView() {
               <button
                 onClick={pomodoroReset}
                 title="Reset phase"
-                class="grid h-11 w-11 place-items-center rounded-full text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+                class="grid h-11 w-11 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-text"
               >
                 <RotateIcon width={18} height={18} />
               </button>
@@ -111,14 +110,18 @@ export function FocusView() {
               <button
                 onClick={pomodoroNext}
                 title="Skip to next phase"
-                class="grid h-11 w-11 place-items-center rounded-full text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+                class="grid h-11 w-11 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-text"
               >
                 <SkipIcon width={18} height={18} />
               </button>
             </div>
 
             <div class="focus-session-progress">
-              <span style={{ width: `${Math.min(100, Math.max(4, (elapsed / Math.max(1, p.target)) * 100))}%` }} />
+              <span
+                style={{
+                  width: `${Math.min(100, Math.max(4, (elapsed / Math.max(1, p.target)) * 100))}%`,
+                }}
+              />
             </div>
           </section>
         )}
@@ -133,28 +136,42 @@ export function FocusView() {
               <NumberField
                 label="Focus"
                 value={p.focusMin}
-                onCommit={(v) => setPomodoroConfig(v, p.shortMin, p.longMin, p.longEvery)}
+                onCommit={(v) =>
+                  setPomodoroConfig(v, p.shortMin, p.longMin, p.longEvery)
+                }
               />
               <NumberField
                 label="Short break"
                 value={p.shortMin}
-                onCommit={(v) => setPomodoroConfig(p.focusMin, v, p.longMin, p.longEvery)}
+                onCommit={(v) =>
+                  setPomodoroConfig(p.focusMin, v, p.longMin, p.longEvery)
+                }
               />
               <NumberField
                 label="Long break"
                 value={p.longMin}
-                onCommit={(v) => setPomodoroConfig(p.focusMin, p.shortMin, v, p.longEvery)}
+                onCommit={(v) =>
+                  setPomodoroConfig(p.focusMin, p.shortMin, v, p.longEvery)
+                }
               />
               <NumberField
                 label="Long every"
                 value={p.longEvery}
-                onCommit={(v) => setPomodoroConfig(p.focusMin, p.shortMin, p.longMin, v)}
+                onCommit={(v) =>
+                  setPomodoroConfig(p.focusMin, p.shortMin, p.longMin, v)
+                }
               />
             </div>
             <div class="focus-rhythm-note">
               <span>Next</span>
-              <strong>{p.phase === "focus" ? "Short recovery" : "Focus session"}</strong>
-              <small>{p.phase === "focus" ? `${p.shortMin} minutes away` : `${p.focusMin} minutes`}</small>
+              <strong>
+                {p.phase === "focus" ? "Short recovery" : "Focus session"}
+              </strong>
+              <small>
+                {p.phase === "focus"
+                  ? `${p.shortMin} minutes away`
+                  : `${p.focusMin} minutes`}
+              </small>
             </div>
           </aside>
         )}
@@ -170,8 +187,12 @@ export function FocusView() {
 function History({ sessions }: { sessions: SessionLog[] }) {
   const t = today();
   const weekAgo = toLocalDate(new Date(Date.now() - 6 * 86400000));
-  const todayTotal = sum(sessions.filter((s) => toLocalDate(new Date(s.startAt)) === t));
-  const weekTotal = sum(sessions.filter((s) => toLocalDate(new Date(s.startAt)) >= weekAgo));
+  const todayTotal = sum(
+    sessions.filter((s) => toLocalDate(new Date(s.startAt)) === t),
+  );
+  const weekTotal = sum(
+    sessions.filter((s) => toLocalDate(new Date(s.startAt)) >= weekAgo),
+  );
   const allTotal = sum(sessions);
 
   // Group by local day, newest first (the list already arrives sorted desc).
@@ -185,7 +206,7 @@ function History({ sessions }: { sessions: SessionLog[] }) {
 
   return (
     <section>
-      <h3 class="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-[var(--color-faint)]">
+      <h3 class="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-faint">
         History
       </h3>
 
@@ -196,34 +217,38 @@ function History({ sessions }: { sessions: SessionLog[] }) {
       </div>
 
       {sessions.length === 0 ? (
-        <div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-8 text-center text-sm text-[var(--color-muted)]">
+        <div class="rounded-xl border border-border bg-[var(--color-surface)] px-4 py-8 text-center text-sm text-muted">
           No focus sessions yet. Press play on a task to start tracking.
         </div>
       ) : (
-        <div class="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]">
+        <div class="overflow-hidden rounded-xl border border-border bg-[var(--color-surface)]">
           {groups.map((g) => (
             <div key={g.day}>
-              <div class="flex items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-surface-2)] px-4 py-1.5">
-                <span class="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-faint)]">
+              <div class="flex items-center justify-between border-b border-border bg-surface-2 px-4 py-1.5">
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-faint">
                   {dayLabel(g.day)}
                 </span>
-                <span class="text-[11px] text-[var(--color-faint)]">
+                <span class="text-[11px] text-faint">
                   {formatDuration(sum(g.items))}
                 </span>
               </div>
               {g.items.map((s) => (
                 <div
                   key={s.id}
-                  class="flex items-center gap-3 border-b border-[var(--color-border)] px-4 py-2.5 last:border-b-0"
+                  class="flex items-center gap-3 border-b border-border px-4 py-2.5 last:border-b-0"
                 >
-                  <TimerIcon width={14} height={14} class="shrink-0 text-[var(--color-faint)]" />
-                  <span class="min-w-0 flex-1 truncate text-sm text-[var(--color-text)]">
+                  <TimerIcon
+                    width={14}
+                    height={14}
+                    class="shrink-0 text-faint"
+                  />
+                  <span class="min-w-0 flex-1 truncate text-sm text-text">
                     {s.title}
                   </span>
-                  <span class="shrink-0 text-xs text-[var(--color-muted)]">
+                  <span class="shrink-0 text-xs text-muted">
                     {timeRange(s.startAt, s.endAt)}
                   </span>
-                  <span class="shrink-0 font-mono text-xs tabular-nums text-[var(--color-muted)]">
+                  <span class="shrink-0 font-mono text-xs tabular-nums text-muted">
                     {formatDuration(s.seconds)}
                   </span>
                 </div>
@@ -238,9 +263,9 @@ function History({ sessions }: { sessions: SessionLog[] }) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 text-center">
-      <p class="text-lg font-semibold tabular-nums text-[var(--color-text)]">{value}</p>
-      <p class="mt-0.5 text-[11px] uppercase tracking-wider text-[var(--color-faint)]">
+    <div class="rounded-xl border border-border bg-[var(--color-surface)] px-3 py-3 text-center">
+      <p class="text-lg font-semibold tabular-nums text-text">{value}</p>
+      <p class="mt-0.5 text-[11px] uppercase tracking-wider text-faint">
         {label}
       </p>
     </div>
@@ -268,7 +293,7 @@ function NumberField({
 
   return (
     <label class="flex flex-col gap-1">
-      <span class="text-[10px] font-medium uppercase tracking-wider text-[var(--color-faint)]">
+      <span class="text-[10px] font-medium uppercase tracking-wider text-faint">
         {label}
       </span>
       <input
@@ -278,7 +303,7 @@ function NumberField({
         onInput={(e) => setText(e.currentTarget.value)}
         onBlur={commit}
         onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-        class="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-2.5 py-1.5 text-sm outline-none transition-colors focus:border-[var(--color-accent)]"
+        class="w-full rounded-lg border border-border bg-[var(--color-bg)] px-2.5 py-1.5 text-sm outline-none transition-colors focus:border-(--color-accent)"
       />
     </label>
   );
@@ -301,6 +326,9 @@ function dayLabel(day: string): string {
 
 function timeRange(start: string, end: string): string {
   const fmt = (iso: string) =>
-    new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+    new Date(iso).toLocaleTimeString(undefined, {
+      hour: "numeric",
+      minute: "2-digit",
+    });
   return `${fmt(start)} – ${fmt(end)}`;
 }

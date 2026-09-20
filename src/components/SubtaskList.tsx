@@ -21,7 +21,8 @@ export function SubtaskList({
   const [draft, setDraft] = useState("");
   const subs = task.subtasks;
   const doneCount = subs.filter((s) => s.done).length;
-  const nextId = () => (subs.length ? Math.max(...subs.map((s) => s.id)) : 0) + 1;
+  const nextId = () =>
+    (subs.length ? Math.max(...subs.map((s) => s.id)) : 0) + 1;
 
   const add = () => {
     const text = draft.trim();
@@ -42,18 +43,18 @@ export function SubtaskList({
   return (
     <div class="mt-4">
       <div class="mb-2 flex items-center justify-between">
-        <p class="text-xs font-medium uppercase tracking-wider text-[var(--color-faint)]">
+        <p class="text-xs font-medium uppercase tracking-wider text-faint">
           Checklist
         </p>
         {subs.length > 0 && (
-          <span class="text-xs text-[var(--color-faint)]">
+          <span class="text-xs text-faint">
             {doneCount}/{subs.length}
           </span>
         )}
       </div>
 
       {subs.length > 0 && (
-        <div class="mb-2 h-1 w-full overflow-hidden rounded-full bg-[var(--color-surface-2)]">
+        <div class="mb-2 h-1 w-full overflow-hidden rounded-full bg-surface-2">
           <div
             class="h-full rounded-full bg-[var(--color-success)] transition-[width]"
             style={{ width: `${(doneCount / subs.length) * 100}%` }}
@@ -82,14 +83,12 @@ export function SubtaskList({
                 }
               }}
               class={`min-w-0 flex-1 bg-transparent text-sm outline-none ${
-                s.done
-                  ? "text-[var(--color-faint)] line-through"
-                  : "text-[var(--color-text)]"
+                s.done ? "text-faint line-through" : "text-text"
               }`}
             />
             <button
               onClick={() => remove(s.id)}
-              class="shrink-0 text-[var(--color-faint)] opacity-0 transition-opacity hover:text-[var(--color-danger)] group-hover:opacity-100"
+              class="shrink-0 text-faint opacity-0 transition-opacity hover:text-(--color-danger) group-hover:opacity-100"
               title="Remove step"
             >
               <CloseIcon width={14} height={14} />
@@ -99,7 +98,7 @@ export function SubtaskList({
       </div>
 
       <div class="mt-1 flex items-center gap-2">
-        <PlusIcon width={14} height={14} class="shrink-0 text-[var(--color-faint)]" />
+        <PlusIcon width={14} height={14} class="shrink-0 text-faint" />
         <input
           value={draft}
           onInput={(e) => setDraft(e.currentTarget.value)}
@@ -111,7 +110,7 @@ export function SubtaskList({
           }}
           onBlur={add}
           placeholder="Add a step…"
-          class="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--color-faint)]"
+          class="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-faint"
         />
       </div>
     </div>

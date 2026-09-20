@@ -14,8 +14,18 @@ import { REPEAT_OPTIONS } from "../lib/repeat";
 import type { RepeatRule } from "../types";
 
 const MONTHS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 const POPOVER_W = 292;
 const YEARS_PER_PAGE = 12;
@@ -28,11 +38,15 @@ function shift(days: number): string {
 }
 function thisWeekend(): string {
   const d = new Date();
-  return toLocalDate(new Date(d.getTime() + ((6 - d.getDay() + 7) % 7) * 86400000));
+  return toLocalDate(
+    new Date(d.getTime() + ((6 - d.getDay() + 7) % 7) * 86400000),
+  );
 }
 function nextWeek(): string {
   const d = new Date();
-  return toLocalDate(new Date(d.getTime() + (((8 - d.getDay()) % 7) || 7) * 86400000));
+  return toLocalDate(
+    new Date(d.getTime() + ((8 - d.getDay()) % 7 || 7) * 86400000),
+  );
 }
 
 interface Props {
@@ -79,7 +93,10 @@ export function DatePicker({
     // Rough initial spot; corrected once measured in the layout effect below.
     setPos({
       top: r.top - 4,
-      left: Math.max(8, Math.min(r.left, window.innerWidth - POPOVER_W - MARGIN)),
+      left: Math.max(
+        8,
+        Math.min(r.left, window.innerWidth - POPOVER_W - MARGIN),
+      ),
     });
     setMonth(value ? new Date(value + "T00:00:00") : new Date());
     setMode("days");
@@ -144,8 +161,18 @@ export function DatePicker({
   const now = new Date();
 
   const QUICK = [
-    { label: "Today", date: today(), hint: now.toLocaleDateString(undefined, { weekday: "short" }) },
-    { label: "Tomorrow", date: shift(1), hint: new Date(Date.now() + 86400000).toLocaleDateString(undefined, { weekday: "short" }) },
+    {
+      label: "Today",
+      date: today(),
+      hint: now.toLocaleDateString(undefined, { weekday: "short" }),
+    },
+    {
+      label: "Tomorrow",
+      date: shift(1),
+      hint: new Date(Date.now() + 86400000).toLocaleDateString(undefined, {
+        weekday: "short",
+      }),
+    },
     { label: "This weekend", date: thisWeekend(), hint: "Sat" },
     { label: "Next week", date: nextWeek(), hint: "Mon" },
   ];
@@ -164,12 +191,12 @@ export function DatePicker({
         ref={btnRef}
         type="button"
         onClick={() => (open ? setOpen(false) : openPicker())}
-        class={`flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-[var(--color-surface-2)] ${
+        class={`flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-surface-2 ${
           value
             ? tone === "overdue"
-              ? "text-[var(--color-danger)]"
-              : "text-[var(--color-accent)]"
-            : "text-[var(--color-faint)]"
+              ? "text-(--color-danger)"
+              : "text-(--color-accent)"
+            : "text-faint"
         }`}
         title="Set date"
       >
@@ -180,249 +207,256 @@ export function DatePicker({
       {open && (
         <Portal>
           <div
-          ref={ref}
-          style={{
-            position: "fixed",
-            top: `${pos.top}px`,
-            left: `${pos.left}px`,
-            width: `${POPOVER_W}px`,
-            // Shortcuts, calendar, time and repeat can outgrow a short window.
-            maxHeight: `calc(100vh - ${MARGIN * 2}px)`,
-          }}
-          class="z-[150] animate-fade-rise overflow-y-auto rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] p-2.5 shadow-2xl shadow-black/50"
-        >
-          {/* Quick shortcuts */}
-          <div class="mb-2 flex flex-col gap-0.5">
-            {QUICK.map((q) => (
-              <button
-                key={q.label}
-                type="button"
-                onClick={() => pick(q.date)}
-                class="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-sm text-[var(--color-text)] transition-colors hover:bg-[var(--color-accent-soft)]"
-              >
-                <span class="flex items-center gap-2.5">
-                  <CalendarIcon width={14} height={14} class="text-[var(--color-faint)]" />
-                  {q.label}
-                </span>
-                <span class="text-xs text-[var(--color-faint)]">{q.hint}</span>
-              </button>
-            ))}
-          </div>
-
-          <div class="border-t border-[var(--color-border)] pt-2">
-            {/* Header — clickable month / year to jump modes */}
-            <div class="mb-2 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => setMonth(paginate(month, mode, -1))}
-                class="grid h-7 w-7 place-items-center rounded-md text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)]"
-              >
-                ‹
-              </button>
-
-              <div class="flex items-center gap-1 text-sm font-medium">
-                {mode === "days" && (
-                  <button
-                    type="button"
-                    onClick={() => setMode("months")}
-                    class="rounded-md px-1.5 py-0.5 transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]"
-                  >
-                    {month.toLocaleDateString(undefined, { month: "long" })}
-                  </button>
-                )}
-                {mode !== "years" && (
-                  <button
-                    type="button"
-                    onClick={() => setMode("years")}
-                    class="rounded-md px-1.5 py-0.5 transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]"
-                  >
-                    {year}
-                  </button>
-                )}
-                {mode === "years" && (
-                  <span class="px-1.5 py-0.5 text-[var(--color-muted)]">
-                    {yearPageStart(year)} – {yearPageStart(year) + YEARS_PER_PAGE - 1}
+            ref={ref}
+            style={{
+              position: "fixed",
+              top: `${pos.top}px`,
+              left: `${pos.left}px`,
+              width: `${POPOVER_W}px`,
+              // Shortcuts, calendar, time and repeat can outgrow a short window.
+              maxHeight: `calc(100vh - ${MARGIN * 2}px)`,
+            }}
+            class="z-[150] animate-fade-rise overflow-y-auto rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] p-2.5 shadow-2xl shadow-black/50"
+          >
+            {/* Quick shortcuts */}
+            <div class="mb-2 flex flex-col gap-0.5">
+              {QUICK.map((q) => (
+                <button
+                  key={q.label}
+                  type="button"
+                  onClick={() => pick(q.date)}
+                  class="flex items-center justify-between rounded-lg px-2.5 py-1.5 text-sm text-text transition-colors hover:bg-accent-soft"
+                >
+                  <span class="flex items-center gap-2.5">
+                    <CalendarIcon width={14} height={14} class="text-faint" />
+                    {q.label}
                   </span>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setMonth(paginate(month, mode, 1))}
-                class="grid h-7 w-7 place-items-center rounded-md text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)]"
-              >
-                ›
-              </button>
+                  <span class="text-xs text-faint">{q.hint}</span>
+                </button>
+              ))}
             </div>
 
-            {mode === "days" && (
-              <DayGrid month={month} value={value} onPick={pick} />
-            )}
+            <div class="border-t border-border pt-2">
+              {/* Header — clickable month / year to jump modes */}
+              <div class="mb-2 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setMonth(paginate(month, mode, -1))}
+                  class="grid h-7 w-7 place-items-center rounded-md text-muted transition-colors hover:bg-surface-2"
+                >
+                  ‹
+                </button>
 
-            {mode === "months" && (
-              <div class="grid grid-cols-3 gap-1">
-                {MONTHS.map((m, i) => {
-                  const sel = valueDate?.getFullYear() === year && valueDate?.getMonth() === i;
-                  const isNow = now.getFullYear() === year && now.getMonth() === i;
-                  return (
+                <div class="flex items-center gap-1 text-sm font-medium">
+                  {mode === "days" && (
                     <button
-                      key={m}
                       type="button"
-                      onClick={() => {
-                        setMonth(new Date(year, i, 1));
-                        setMode("days");
-                      }}
-                      class={cell(sel, isNow) + " h-9"}
+                      onClick={() => setMode("months")}
+                      class="rounded-md px-1.5 py-0.5 transition-colors hover:bg-surface-2 hover:text-(--color-accent)"
                     >
-                      {m}
+                      {month.toLocaleDateString(undefined, { month: "long" })}
                     </button>
-                  );
-                })}
-              </div>
-            )}
-
-            {mode === "years" && (
-              <div class="grid grid-cols-3 gap-1">
-                {Array.from({ length: YEARS_PER_PAGE }, (_, i) => yearPageStart(year) + i).map((y) => {
-                  const sel = valueDate?.getFullYear() === y;
-                  const isNow = now.getFullYear() === y;
-                  return (
+                  )}
+                  {mode !== "years" && (
                     <button
-                      key={y}
                       type="button"
-                      onClick={() => {
-                        setMonth(new Date(y, month.getMonth(), 1));
-                        setMode("months");
-                      }}
-                      class={cell(sel, isNow) + " h-9"}
+                      onClick={() => setMode("years")}
+                      class="rounded-md px-1.5 py-0.5 transition-colors hover:bg-surface-2 hover:text-(--color-accent)"
                     >
-                      {y}
+                      {year}
                     </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Time / reminder */}
-          {withTime && (
-            <div class="mt-2 border-t border-[var(--color-border)] pt-2">
-              <div class="mb-1.5 flex items-center gap-1.5 px-0.5 text-xs text-[var(--color-muted)]">
-                <BellIcon width={13} height={13} />
-                Time
-                {time && (
-                  <button
-                    type="button"
-                    onClick={() => setTime(null)}
-                    class="ml-auto text-[var(--color-faint)] hover:text-[var(--color-danger)]"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-              <div class="flex flex-wrap items-center gap-1.5 px-0.5">
-                {quickTimes.map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => setTime(t)}
-                    class={`rounded-md px-2 py-1 text-xs transition-colors ${
-                      time === t
-                        ? "bg-[var(--color-accent)] text-white"
-                        : "bg-[var(--color-surface-2)] text-[var(--color-muted)] hover:text-[var(--color-text)]"
-                    }`}
-                  >
-                    {formatTime(t)}
-                  </button>
-                ))}
-              </div>
-              <div class="mt-1.5 flex px-0.5">
-                <TimeField
-                  value={time || null}
-                  onChange={setTime}
-                  onDone={() => setOpen(false)}
-                />
-              </div>
-
-              {onSnooze &&
-                reminderAt &&
-                new Date(reminderAt).getTime() < Date.now() && (
-                  <div class="mt-2 flex flex-wrap items-center gap-1.5 px-0.5">
-                    <span class="text-xs text-[var(--color-warning)]">
-                      Snooze
+                  )}
+                  {mode === "years" && (
+                    <span class="px-1.5 py-0.5 text-muted">
+                      {yearPageStart(year)} –{" "}
+                      {yearPageStart(year) + YEARS_PER_PAGE - 1}
                     </span>
-                    {[
-                      { label: "10m", min: 10 },
-                      { label: "1h", min: 60 },
-                      { label: "3h", min: 180 },
-                    ].map((s) => (
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setMonth(paginate(month, mode, 1))}
+                  class="grid h-7 w-7 place-items-center rounded-md text-muted transition-colors hover:bg-surface-2"
+                >
+                  ›
+                </button>
+              </div>
+
+              {mode === "days" && (
+                <DayGrid month={month} value={value} onPick={pick} />
+              )}
+
+              {mode === "months" && (
+                <div class="grid grid-cols-3 gap-1">
+                  {MONTHS.map((m, i) => {
+                    const sel =
+                      valueDate?.getFullYear() === year &&
+                      valueDate?.getMonth() === i;
+                    const isNow =
+                      now.getFullYear() === year && now.getMonth() === i;
+                    return (
                       <button
-                        key={s.label}
+                        key={m}
                         type="button"
                         onClick={() => {
-                          onSnooze(s.min);
-                          setOpen(false);
+                          setMonth(new Date(year, i, 1));
+                          setMode("days");
                         }}
-                        class="rounded-md bg-[var(--color-surface-2)] px-2 py-1 text-xs text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]"
+                        class={cell(sel, isNow) + " h-9"}
                       >
-                        {s.label}
+                        {m}
                       </button>
-                    ))}
-                  </div>
-                )}
-            </div>
-          )}
+                    );
+                  })}
+                </div>
+              )}
 
-          {onRepeatChange && (
-            <div class="mt-2 border-t border-[var(--color-border)] pt-2">
-              <div class="mb-1.5 flex items-center gap-1.5 px-0.5 text-xs text-[var(--color-muted)]">
-                <RepeatIcon width={13} height={13} />
-                Repeat
+              {mode === "years" && (
+                <div class="grid grid-cols-3 gap-1">
+                  {Array.from(
+                    { length: YEARS_PER_PAGE },
+                    (_, i) => yearPageStart(year) + i,
+                  ).map((y) => {
+                    const sel = valueDate?.getFullYear() === y;
+                    const isNow = now.getFullYear() === y;
+                    return (
+                      <button
+                        key={y}
+                        type="button"
+                        onClick={() => {
+                          setMonth(new Date(y, month.getMonth(), 1));
+                          setMode("months");
+                        }}
+                        class={cell(sel, isNow) + " h-9"}
+                      >
+                        {y}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Time / reminder */}
+            {withTime && (
+              <div class="mt-2 border-t border-border pt-2">
+                <div class="mb-1.5 flex items-center gap-1.5 px-0.5 text-xs text-muted">
+                  <BellIcon width={13} height={13} />
+                  Time
+                  {time && (
+                    <button
+                      type="button"
+                      onClick={() => setTime(null)}
+                      class="ml-auto text-faint hover:text-(--color-danger)"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5 px-0.5">
+                  {quickTimes.map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => setTime(t)}
+                      class={`rounded-md px-2 py-1 text-xs transition-colors ${
+                        time === t
+                          ? "bg-[var(--color-accent)] text-white"
+                          : "bg-surface-2 text-muted hover:text-text"
+                      }`}
+                    >
+                      {formatTime(t)}
+                    </button>
+                  ))}
+                </div>
+                <div class="mt-1.5 flex px-0.5">
+                  <TimeField
+                    value={time || null}
+                    onChange={setTime}
+                    onDone={() => setOpen(false)}
+                  />
+                </div>
+
+                {onSnooze &&
+                  reminderAt &&
+                  new Date(reminderAt).getTime() < Date.now() && (
+                    <div class="mt-2 flex flex-wrap items-center gap-1.5 px-0.5">
+                      <span class="text-xs text-[var(--color-warning)]">
+                        Snooze
+                      </span>
+                      {[
+                        { label: "10m", min: 10 },
+                        { label: "1h", min: 60 },
+                        { label: "3h", min: 180 },
+                      ].map((s) => (
+                        <button
+                          key={s.label}
+                          type="button"
+                          onClick={() => {
+                            onSnooze(s.min);
+                            setOpen(false);
+                          }}
+                          class="rounded-md bg-surface-2 px-2 py-1 text-xs text-muted transition-colors hover:text-text"
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
               </div>
-              <div class="flex flex-wrap gap-1 px-0.5">
-                {REPEAT_OPTIONS.map((opt) => (
+            )}
+
+            {onRepeatChange && (
+              <div class="mt-2 border-t border-border pt-2">
+                <div class="mb-1.5 flex items-center gap-1.5 px-0.5 text-xs text-muted">
+                  <RepeatIcon width={13} height={13} />
+                  Repeat
+                </div>
+                <div class="flex flex-wrap gap-1 px-0.5">
+                  {REPEAT_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value ?? "none"}
+                      type="button"
+                      onClick={() => onRepeatChange(opt.value)}
+                      class={`rounded-md px-2 py-1 text-xs transition-colors ${
+                        (repeat ?? null) === opt.value
+                          ? "bg-[var(--color-accent)] text-white"
+                          : "bg-surface-2 text-muted hover:text-text"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {((allowClear && value) || staysOpen) && (
+              <div class="mt-2 flex items-center gap-2 border-t border-border pt-2">
+                {allowClear && value && (
                   <button
-                    key={opt.value ?? "none"}
                     type="button"
-                    onClick={() => onRepeatChange(opt.value)}
-                    class={`rounded-md px-2 py-1 text-xs transition-colors ${
-                      (repeat ?? null) === opt.value
-                        ? "bg-[var(--color-accent)] text-white"
-                        : "bg-[var(--color-surface-2)] text-[var(--color-muted)] hover:text-[var(--color-text)]"
-                    }`}
+                    onClick={() => {
+                      pick(null);
+                      setOpen(false);
+                    }}
+                    class="rounded-md px-1 text-xs text-faint hover:text-(--color-danger)"
                   >
-                    {opt.label}
+                    Clear date &amp; time
                   </button>
-                ))}
+                )}
+                {staysOpen && (
+                  <button
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    class="ml-auto rounded-md bg-[var(--color-accent)] px-2.5 py-1 text-xs font-medium text-white"
+                  >
+                    Done
+                  </button>
+                )}
               </div>
-            </div>
-          )}
-
-          {((allowClear && value) || staysOpen) && (
-            <div class="mt-2 flex items-center gap-2 border-t border-[var(--color-border)] pt-2">
-              {allowClear && value && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    pick(null);
-                    setOpen(false);
-                  }}
-                  class="rounded-md px-1 text-xs text-[var(--color-faint)] hover:text-[var(--color-danger)]"
-                >
-                  Clear date &amp; time
-                </button>
-              )}
-              {staysOpen && (
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  class="ml-auto rounded-md bg-[var(--color-accent)] px-2.5 py-1 text-xs font-medium text-white"
-                >
-                  Done
-                </button>
-              )}
-            </div>
-          )}
+            )}
           </div>
         </Portal>
       )}
@@ -432,10 +466,11 @@ export function DatePicker({
 
 /** Shared cell styling for day / month / year buttons. */
 function cell(selected: boolean, isToday: boolean): string {
-  if (selected) return "grid place-items-center rounded-lg bg-[var(--color-accent)] text-xs font-medium text-white";
+  if (selected)
+    return "grid place-items-center rounded-lg bg-[var(--color-accent)] text-xs font-medium text-white";
   if (isToday)
-    return "grid place-items-center rounded-lg text-xs text-[var(--color-accent)] ring-1 ring-inset ring-[var(--color-accent)] hover:bg-[var(--color-surface-2)]";
-  return "grid place-items-center rounded-lg text-xs text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface-2)]";
+    return "grid place-items-center rounded-lg text-xs text-(--color-accent) ring-1 ring-inset ring-[var(--color-accent)] hover:bg-surface-2";
+  return "grid place-items-center rounded-lg text-xs text-text transition-colors hover:bg-surface-2";
 }
 
 function DayGrid({
@@ -449,7 +484,11 @@ function DayGrid({
 }) {
   const first = new Date(month.getFullYear(), month.getMonth(), 1);
   const offset = weekdayOffset(first);
-  const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+  const daysInMonth = new Date(
+    month.getFullYear(),
+    month.getMonth() + 1,
+    0,
+  ).getDate();
   const cells: (string | null)[] = [];
   for (let i = 0; i < offset; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++)
@@ -457,9 +496,11 @@ function DayGrid({
 
   return (
     <>
-      <div class="grid grid-cols-7 text-center text-[10px] font-medium text-[var(--color-faint)]">
+      <div class="grid grid-cols-7 text-center text-[10px] font-medium text-faint">
         {weekdayNames("narrow").map((w) => (
-          <span key={w.index} class="py-1">{w.label}</span>
+          <span key={w.index} class="py-1">
+            {w.label}
+          </span>
         ))}
       </div>
       <div class="grid grid-cols-7 gap-0.5">
@@ -488,7 +529,13 @@ function yearPageStart(year: number): number {
 
 /** Step the header back/forward by one unit for the active mode. */
 function paginate(month: Date, mode: Mode, dir: number): Date {
-  if (mode === "days") return new Date(month.getFullYear(), month.getMonth() + dir, 1);
-  if (mode === "months") return new Date(month.getFullYear() + dir, month.getMonth(), 1);
-  return new Date(month.getFullYear() + dir * YEARS_PER_PAGE, month.getMonth(), 1);
+  if (mode === "days")
+    return new Date(month.getFullYear(), month.getMonth() + dir, 1);
+  if (mode === "months")
+    return new Date(month.getFullYear() + dir, month.getMonth(), 1);
+  return new Date(
+    month.getFullYear() + dir * YEARS_PER_PAGE,
+    month.getMonth(),
+    1,
+  );
 }

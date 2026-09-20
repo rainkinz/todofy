@@ -29,6 +29,7 @@ Plan your work as a list, a board, or a calendar. Stay focused with timers and r
 - 📋 **Kanban board** — see your work as cards across _To do_, _In progress_, _Blocked_ and _Done_. Drag a card down its column to reorder it or across to change its stage; dropping into _Done_ completes the task properly, so a repeating task still rolls forward to its next occurrence and dragging it back out re‑opens it. Cards carry the same detail as list rows — priority, due date, labels, checklist progress, estimate, and live tracked time — and clicking one opens the full task in a dialog. Narrow the board to _Today_ or _This week_, search and filter as you would anywhere else, or move the selected card with **H** / **L**. The board keeps its own arrangement, so rearranging cards never disturbs your list order
 - ⚡ **Global quick‑add** — hit **Ctrl+Alt+A** anywhere (even with todofy tucked in the tray) for a floating capture bar; type, press Enter, and you're back to what you were doing
 - ✍️ **Natural‑language quick‑add** — type _"pay rent friday 5pm #home p1"_ and the date, time, priority, and label are parsed out live and shown as chips
+- 🎙️ **Optional local voice input** — download the free whisper.cpp engine and a multilingual model in Settings, then enable Voice Mode to dictate a task or journal draft. A live waveform stays inside the editor while you speak. Nothing downloads or requests microphone access until you choose to use it
 - 🔁 **Recurring tasks** — repeat _daily, every weekday, weekly, monthly,_ or _yearly_; completing one rolls it forward to the next occurrence instead of finishing it (also from natural language — _"water plants every week"_)
 - 🍅 **Focus timers** — a built‑in **Pomodoro** (focus / short & long breaks) _and_ a **per‑task stopwatch** with **start, pause, and stop**, so a break isn't recorded as work; both keep counting while hidden in the tray and survive a restart, and never auto‑stop — they nudge you instead. Choose whether a task's play button is a plain stopwatch or launches a Pomodoro bound to that task
 - ⏳ **Estimates vs. actual** — give a task an expected length (**"90"**, **"1h30"**, **"1.5h"** all work), watch its time count up live on the task row, and see it turn **red** with the overrun once it runs past the estimate — in the app and on the tray clock
@@ -56,6 +57,14 @@ Plan your work as a list, a board, or a calendar. Stay focused with timers and r
 - 📅 **Google Calendar sync** — push your dated tasks to a dedicated **todofy** calendar (one‑way) so they sit right beside your meetings: all‑day for date‑only tasks, timed for tasks with a reminder. Recurring tasks move as they roll, completed and deleted tasks tidy themselves up, and you can keep finished tasks or limit the push to timed tasks only. Opt‑in, gated behind account sign‑in
 - 🗑️ **Delete your account** — cancel any linked recurring Todofy subscription first, then remove your current account and all of its cloud data; optionally wipe the copy on this device too. If cancellation cannot be confirmed, deletion stops safely so you can retry. You can register a fresh account later with the same email address
 - 💾 **Local‑first** — everything is stored in a local SQLite database and works fully offline; sync is additive, and with no account there's no cloud and no tracking
+
+### Voice Mode
+
+Voice Mode is free and off by default. Open **Settings → Voice**, download the voice engine and either the recommended multilingual Base model (about 142 MB) or the smaller Tiny model (about 75 MB), then turn on Voice Mode. The spoken language is detected automatically. Click the microphone icon in the task composer, global quick capture, or journal editor. A live waveform opens at the top of that editor; click the stop icon to insert editable text, or **X** to discard the recording. The existing Add or Save button remains a separate step. English scheduling phrases in a dictated task use the same quick-add parser as typed text; other languages stay as editable task text.
+
+The engine and model are stored outside the app bundle and can be removed in Settings. Downloads are verified against a signed catalog. Recording and transcription stay on your device; the temporary audio file is removed after transcription or cancellation. Saved task or journal text follows your existing local storage and optional account sync settings. The voice engine is [whisper.cpp](https://github.com/ggml-org/whisper.cpp) and the GGML speech models come from the [whisper.cpp model collection](https://huggingface.co/ggerganov/whisper.cpp). Their license notices are in [third party notices](docs/third_party/) and attached to the release.
+
+To test voice input from source with local engine and model files, follow [local voice testing](docs/local-voice-testing.md).
 
 ## 📸 Screenshots
 
@@ -113,20 +122,20 @@ Grab a package from the [Releases](../../releases) page, or build it yourself (s
 **AppImage** — portable, runs on any distro:
 
 ```bash
-chmod +x todofy_1.12.1_amd64.AppImage
-./todofy_1.12.1_amd64.AppImage
+chmod +x todofy_1.13.0_amd64.AppImage
+./todofy_1.13.0_amd64.AppImage
 ```
 
 **Debian / Ubuntu:**
 
 ```bash
-sudo dpkg -i todofy_1.12.1_amd64.deb
+sudo dpkg -i todofy_1.13.0_amd64.deb
 ```
 
 **Fedora / RHEL / openSUSE:**
 
 ```bash
-sudo rpm -i todofy-1.12.1-1.x86_64.rpm
+sudo rpm -i todofy-1.13.0-1.x86_64.rpm
 ```
 
 **macOS** — open the `.dmg` and drag todofy into Applications. It's not
@@ -134,14 +143,14 @@ notarized yet, so on first launch right‑click the app and choose **Open** to
 get past Gatekeeper:
 
 ```
-todofy_1.12.1_universal.dmg  # Intel and Apple Silicon
+todofy_1.13.0_universal.dmg  # Intel and Apple Silicon
 ```
 
 **Windows** — run the installer:
 
 ```
-todofy_1.12.1_x64-setup.exe   # NSIS installer
-todofy_1.12.1_x64_en-US.msi   # or the MSI
+todofy_1.13.0_x64-setup.exe   # NSIS installer
+todofy_1.13.0_x64_en-US.msi   # or the MSI
 ```
 
 > Your tasks live in the app's data directory — `~/.local/share/com.unifybrowse.todofy/`
@@ -201,7 +210,8 @@ replacing files behind your package database's back.
 # Debian / Ubuntu
 sudo apt update
 sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file \
-  libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+  libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev \
+  libasound2-dev
 ```
 
 ### Develop

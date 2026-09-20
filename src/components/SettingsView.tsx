@@ -37,6 +37,7 @@ import { RELEASES_URL, useUpdater } from "../lib/updater";
 import type { TaskTimerMode } from "../types";
 import { AccountSection } from "./AccountSection";
 import { CalendarSection } from "./CalendarSection";
+import { VoiceSettingsSection } from "./VoiceSettingsSection";
 import {
   BellIcon,
   BoltIcon,
@@ -317,7 +318,12 @@ export function SettingsView() {
         ]);
         setSound("custom");
         setCustomName(file.name);
-        void playPreview({ sound: "custom", volume, ramp: false, customData: data });
+        void playPreview({
+          sound: "custom",
+          volume,
+          ramp: false,
+          customData: data,
+        });
       } catch {
         setSoundError("That file couldn't be read.");
       }
@@ -328,8 +334,15 @@ export function SettingsView() {
   /** The ramp belongs to repeats, so a preview plays at the set volume. */
   const previewSound = async (id: SoundId, level: number) => {
     const data =
-      id === "custom" ? await api.getSetting(SOUND_KEYS.data).catch(() => null) : null;
-    await playPreview({ sound: id, volume: level, ramp: false, customData: data });
+      id === "custom"
+        ? await api.getSetting(SOUND_KEYS.data).catch(() => null)
+        : null;
+    await playPreview({
+      sound: id,
+      volume: level,
+      ramp: false,
+      customData: data,
+    });
   };
 
   /** A preview that stays silent has to say why, or it reads as unimplemented. */
@@ -339,14 +352,18 @@ export function SettingsView() {
       await playSound(settings);
     } catch (error) {
       setSoundError(
-        error instanceof Error ? error.message : "That sound couldn't be played.",
+        error instanceof Error
+          ? error.message
+          : "That sound couldn't be played.",
       );
     }
   };
 
   const saveQuickTimes = (next: string[]) => {
     setQuickTimesState(next);
-    void api.setSetting(QUICK_TIMES_KEY, serializeQuickTimes(next)).catch(() => {});
+    void api
+      .setSetting(QUICK_TIMES_KEY, serializeQuickTimes(next))
+      .catch(() => {});
   };
 
   const removeQuickTime = (time: string) =>
@@ -385,14 +402,13 @@ export function SettingsView() {
     <main class="redesign-secondary settings-main flex flex-1 flex-col overflow-hidden bg-[var(--color-bg)]">
       <header class="app-page-header shrink-0 px-8 pt-8 pb-4">
         <h2 class="text-2xl font-semibold tracking-tight">Settings</h2>
-        <p class="mt-0.5 text-sm text-[var(--color-muted)]">
-          Startup, appearance, and about
-        </p>
+        <p class="mt-0.5 text-sm text-muted">Startup, appearance, and about</p>
       </header>
 
       <div class="secondary-scroll settings-content mx-auto w-full max-w-2xl flex-1 overflow-y-auto px-8 pt-2 pb-8">
         <AccountSection />
         <CalendarSection />
+        <VoiceSettingsSection />
 
         {/* Startup */}
         <Section title="Startup">
@@ -409,8 +425,8 @@ export function SettingsView() {
           </Row>
 
           {autostart && (
-            <div class="animate-fade-rise border-t border-[var(--color-border)] px-4 py-3.5">
-              <p class="mb-2.5 text-xs font-medium text-[var(--color-muted)]">
+            <div class="animate-fade-rise border-t border-border px-4 py-3.5">
+              <p class="mb-2.5 text-xs font-medium text-muted">
                 When todofy starts at login
               </p>
               <div class="flex flex-col gap-2">
@@ -438,7 +454,7 @@ export function SettingsView() {
             title="Global quick-add hotkey"
             desc="Press this from any app to pop up todofy's capture box — jot a task and it's saved to your inbox without switching windows."
           >
-            <kbd class="shrink-0 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface-2)] px-2.5 py-1 text-xs font-medium text-[var(--color-muted)]">
+            <kbd class="shrink-0 rounded-lg border border-border bg-surface-2 px-2.5 py-1 text-xs font-medium text-muted">
               Ctrl + Alt + A
             </kbd>
           </Row>
@@ -459,8 +475,8 @@ export function SettingsView() {
           </Row>
 
           {desktopNotifications && (
-            <div class="animate-fade-rise border-t border-[var(--color-border)] px-4 py-3.5">
-              <p class="mb-2.5 text-xs font-medium text-[var(--color-muted)]">
+            <div class="animate-fade-rise border-t border-border px-4 py-3.5">
+              <p class="mb-2.5 text-xs font-medium text-muted">
                 Notification style
               </p>
               <div class="flex flex-col gap-2">
@@ -480,7 +496,7 @@ export function SettingsView() {
 
               {notifStyle === "custom" && (
                 <div class="mt-3.5 animate-fade-rise">
-                  <p class="mb-2 text-xs font-medium text-[var(--color-muted)]">
+                  <p class="mb-2 text-xs font-medium text-muted">
                     Position on screen
                   </p>
                   <div class="grid grid-cols-2 gap-2">
@@ -490,8 +506,8 @@ export function SettingsView() {
                         onClick={() => choosePosition(c.value)}
                         class={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
                           notifPosition === c.value
-                            ? "border-[var(--color-accent)] bg-[var(--color-accent-soft)] text-[var(--color-text)]"
-                            : "border-[var(--color-border)] text-[var(--color-muted)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+                            ? "border-(--color-accent) bg-accent-soft text-text"
+                            : "border-border text-muted hover:bg-surface-2 hover:text-text"
                         }`}
                       >
                         {c.label}
@@ -504,8 +520,8 @@ export function SettingsView() {
           )}
 
           {desktopNotifications && (
-            <div class="border-t border-[var(--color-border)] px-4 py-3.5">
-              <p class="mb-2 text-xs font-medium text-[var(--color-muted)]">
+            <div class="border-t border-border px-4 py-3.5">
+              <p class="mb-2 text-xs font-medium text-muted">
                 Repeat an unanswered reminder
               </p>
               <div class="grid grid-cols-2 gap-2">
@@ -518,15 +534,13 @@ export function SettingsView() {
                   />
                 ))}
               </div>
-              <p class="mt-3 text-xs text-[var(--color-faint)]">
+              <p class="mt-3 text-xs text-faint">
                 {repeatEvery === "0"
                   ? "A reminder shows once and then waits for you."
                   : `Keeps going every ${repeatEvery} minutes for as long as it takes — it never gives up on its own. It stops when you open, dismiss or snooze it, complete the task, or start timing it.`}
               </p>
 
-              <p class="mt-4 mb-2 text-xs font-medium text-[var(--color-muted)]">
-                Sound
-              </p>
+              <p class="mt-4 mb-2 text-xs font-medium text-muted">Sound</p>
               <div class="grid grid-cols-3 gap-2">
                 {SOUNDS.map((option) => (
                   <Choice
@@ -545,22 +559,22 @@ export function SettingsView() {
               {sound === "custom" && (
                 <button
                   onClick={pickCustomSound}
-                  class="mt-2 text-xs text-[var(--color-accent)] hover:underline"
+                  class="mt-2 text-xs text-(--color-accent) hover:underline"
                 >
                   Choose a different file…
                 </button>
               )}
               {soundError && (
-                <p class="mt-2 text-xs text-[var(--color-danger)]">{soundError}</p>
+                <p class="mt-2 text-xs text-(--color-danger)">{soundError}</p>
               )}
 
               {sound !== "none" && (
                 <div class="mt-4 animate-fade-rise">
                   <div class="mb-2 flex items-center justify-between">
-                    <p class="text-xs font-medium text-[var(--color-muted)]">Volume</p>
+                    <p class="text-xs font-medium text-muted">Volume</p>
                     <button
                       onClick={() => previewSound(sound, volume)}
-                      class="text-xs text-[var(--color-accent)] hover:underline"
+                      class="text-xs text-(--color-accent) hover:underline"
                     >
                       Play
                     </button>
@@ -572,8 +586,10 @@ export function SettingsView() {
                     step={5}
                     value={volume}
                     onInput={(e) => setVolume(Number(e.currentTarget.value))}
-                    onChange={(e) => changeVolume(Number(e.currentTarget.value))}
-                    class="w-full accent-[var(--color-accent)]"
+                    onChange={(e) =>
+                      changeVolume(Number(e.currentTarget.value))
+                    }
+                    class="w-full accent-(--color-accent)"
                     aria-label="Reminder volume"
                   />
 
@@ -582,7 +598,7 @@ export function SettingsView() {
                     role="checkbox"
                     aria-checked={ramp}
                     onClick={toggleRamp}
-                    class="mt-3 flex w-full items-start gap-2.5 text-left text-xs text-[var(--color-muted)]"
+                    class="mt-3 flex w-full items-start gap-2.5 text-left text-xs text-muted"
                   >
                     <span class="mt-0.5">
                       <Checkbox checked={ramp} interactive={false} size={16} />
@@ -590,7 +606,7 @@ export function SettingsView() {
                     <span>
                       Get louder each time a reminder repeats
                       {repeatEvery === "0" && (
-                        <em class="not-italic text-[var(--color-faint)]">
+                        <em class="not-italic text-faint">
                           {" "}
                           — needs repeating reminders, above
                         </em>
@@ -602,12 +618,10 @@ export function SettingsView() {
             </div>
           )}
 
-          <div class="flex items-center gap-3 border-t border-[var(--color-border)] px-4 py-3.5">
+          <div class="flex items-center gap-3 border-t border-border px-4 py-3.5">
             <div class="min-w-0 flex-1">
-              <p class="text-sm font-medium text-[var(--color-text)]">
-                Test notification
-              </p>
-              <p class="mt-0.5 text-xs text-[var(--color-muted)]">
+              <p class="text-sm font-medium text-text">Test notification</p>
+              <p class="mt-0.5 text-xs text-muted">
                 {testStatus === "sent"
                   ? `Sent via ${ROUTE_LABEL[testRoute] ?? "notification"} — check your screen.`
                   : testStatus === "error"
@@ -618,7 +632,7 @@ export function SettingsView() {
             <button
               onClick={sendTestNotification}
               disabled={testStatus === "sending"}
-              class="shrink-0 rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)] disabled:opacity-50"
+              class="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:bg-surface-2 hover:text-text disabled:opacity-50"
             >
               {testStatus === "sending" ? "Sending…" : "Send test"}
             </button>
@@ -628,9 +642,7 @@ export function SettingsView() {
         {/* Date & time */}
         <Section title="Date & time">
           <div class="px-4 py-3.5">
-            <p class="mb-2.5 text-xs font-medium text-[var(--color-muted)]">
-              Clock
-            </p>
+            <p class="mb-2.5 text-xs font-medium text-muted">Clock</p>
             <div class="grid grid-cols-3 gap-2">
               {TIME_FORMATS.map((option) => (
                 <Choice
@@ -642,7 +654,7 @@ export function SettingsView() {
               ))}
             </div>
 
-            <p class="mt-3.5 mb-2.5 text-xs font-medium text-[var(--color-muted)]">
+            <p class="mt-3.5 mb-2.5 text-xs font-medium text-muted">
               Week starts on
             </p>
             <div class="grid grid-cols-4 gap-2">
@@ -656,11 +668,11 @@ export function SettingsView() {
               ))}
             </div>
 
-            <p class="mt-3 text-xs text-[var(--color-faint)]">
+            <p class="mt-3 text-xs text-faint">
               Auto follows your system settings — currently {autoSummary()}.
             </p>
 
-            <p class="mt-4 mb-2 text-xs font-medium text-[var(--color-muted)]">
+            <p class="mt-4 mb-2 text-xs font-medium text-muted">
               Quick times in the date picker
             </p>
             <div class="flex flex-wrap items-center gap-2">
@@ -669,7 +681,7 @@ export function SettingsView() {
                   key={t}
                   onClick={() => removeQuickTime(t)}
                   title="Remove"
-                  class="flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] px-2.5 py-1.5 text-xs text-[var(--color-text)] transition-colors hover:border-[var(--color-danger)] hover:text-[var(--color-danger)]"
+                  class="flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs text-text transition-colors hover:border-(--color-danger) hover:text-(--color-danger)"
                 >
                   {formatTime(t)}
                   <CloseIcon width={12} height={12} />
@@ -684,7 +696,7 @@ export function SettingsView() {
                 />
               )}
             </div>
-            <p class="mt-2 text-xs text-[var(--color-faint)]">
+            <p class="mt-2 text-xs text-faint">
               {quickTimes.length
                 ? "Shown as one-tap buttons when you set a time. Click one to remove it."
                 : "No shortcuts — the date picker shows only the time field."}
@@ -695,7 +707,7 @@ export function SettingsView() {
         {/* Task timer */}
         <Section title="Task timer">
           <div class="px-4 py-3.5">
-            <p class="mb-2.5 text-xs font-medium text-[var(--color-muted)]">
+            <p class="mb-2.5 text-xs font-medium text-muted">
               The play button on a task
             </p>
             <div class="grid grid-cols-2 gap-2">
@@ -708,8 +720,11 @@ export function SettingsView() {
                 />
               ))}
             </div>
-            <p class="mt-3 text-xs text-[var(--color-faint)]">
-              {TIMER_MODES.find((option) => option.value === taskTimerMode)?.hint}{" "}
+            <p class="mt-3 text-xs text-faint">
+              {
+                TIMER_MODES.find((option) => option.value === taskTimerMode)
+                  ?.hint
+              }{" "}
               Either way the task's time is recorded, and start, pause and stop
               work the same.
             </p>
@@ -731,7 +746,7 @@ export function SettingsView() {
           >
             <button
               onClick={toggleTheme}
-              class="rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+              class="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:bg-surface-2 hover:text-text"
             >
               Switch to {theme === "dark" ? "light" : "dark"}
             </button>
@@ -754,7 +769,7 @@ export function SettingsView() {
           >
             <button
               onClick={() => toggleShortcuts(true)}
-              class="shrink-0 rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+              class="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:bg-surface-2 hover:text-text"
             >
               View shortcuts
             </button>
@@ -764,7 +779,7 @@ export function SettingsView() {
         {/* Updates */}
         <Section title="Updates">
           <UpdateRow version={version} />
-          <div class="border-t border-[var(--color-border)]" />
+          <div class="border-t border-border" />
           <Row
             icon={<RotateIcon width={18} height={18} />}
             title="Check automatically"
@@ -775,7 +790,7 @@ export function SettingsView() {
               onChange={() => void setAutoCheckUpdates(!autoCheckUpdates)}
             />
           </Row>
-          <div class="border-t border-[var(--color-border)]" />
+          <div class="border-t border-border" />
           <Row
             icon={<DownloadIcon width={18} height={18} />}
             title="Install automatically"
@@ -802,12 +817,12 @@ export function SettingsView() {
           >
             <button
               onClick={() => useOnboarding.getState().start()}
-              class="shrink-0 rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+              class="shrink-0 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:bg-surface-2 hover:text-text"
             >
               Show tour
             </button>
           </Row>
-          <div class="border-t border-[var(--color-border)]" />
+          <div class="border-t border-border" />
           <Row
             icon={<WebsiteIcon width={18} height={18} />}
             title="Todofy website"
@@ -818,7 +833,7 @@ export function SettingsView() {
               onClick={() => openExternal(WEBSITE_URL)}
             />
           </Row>
-          <div class="border-t border-[var(--color-border)]" />
+          <div class="border-t border-border" />
           <Row
             icon={<GitHubIcon width={18} height={18} />}
             title="GitHub repository"
@@ -829,12 +844,12 @@ export function SettingsView() {
               onClick={() => openExternal(GITHUB_URL)}
             />
           </Row>
-          <div class="border-t border-[var(--color-border)]" />
+          <div class="border-t border-border" />
           <Row
             title="Version"
             desc="You're running the latest installed build."
           >
-            <span class="rounded-full bg-[var(--color-surface-2)] px-2 py-0.5 text-xs font-medium text-[var(--color-muted)]">
+            <span class="rounded-full bg-surface-2 px-2 py-0.5 text-xs font-medium text-muted">
               {version ? `v${version}` : "—"}
             </span>
           </Row>
@@ -849,13 +864,20 @@ export function SettingsView() {
  * how far a download has got, and the one action that makes sense next.
  */
 function UpdateRow({ version }: { version: string }) {
-  const { state, version: next, error, downloaded, total, canSelfUpdate } =
-    useUpdater();
+  const {
+    state,
+    version: next,
+    error,
+    downloaded,
+    total,
+    canSelfUpdate,
+  } = useUpdater();
   const check = useUpdater((s) => s.check);
   const install = useUpdater((s) => s.install);
   const restart = useUpdater((s) => s.restart);
 
-  const percent = total > 0 ? Math.min(100, Math.round((downloaded / total) * 100)) : 0;
+  const percent =
+    total > 0 ? Math.min(100, Math.round((downloaded / total) * 100)) : 0;
 
   const desc =
     state === "checking"
@@ -882,17 +904,17 @@ function UpdateRow({ version }: { version: string }) {
         <span
           class={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${
             state === "available" || state === "ready"
-              ? "bg-[var(--color-accent-soft)] text-[var(--color-accent)]"
-              : "bg-[var(--color-surface-2)] text-[var(--color-muted)]"
+              ? "bg-accent-soft text-(--color-accent)"
+              : "bg-surface-2 text-muted"
           }`}
         >
           <DownloadIcon width={18} height={18} />
         </span>
         <div class="min-w-0 flex-1">
-          <p class="text-sm font-medium text-[var(--color-text)]">Software update</p>
+          <p class="text-sm font-medium text-text">Software update</p>
           <p
             class={`mt-0.5 text-xs ${
-              state === "error" ? "text-[var(--color-danger)]" : "text-[var(--color-muted)]"
+              state === "error" ? "text-(--color-danger)" : "text-muted"
             }`}
           >
             {desc}
@@ -917,7 +939,7 @@ function UpdateRow({ version }: { version: string }) {
             <button
               onClick={() => void check(true)}
               disabled={state === "checking" || state === "downloading"}
-              class="rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)] disabled:opacity-50"
+              class="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:bg-surface-2 hover:text-text disabled:opacity-50"
             >
               {state === "checking"
                 ? "Checking…"
@@ -932,7 +954,7 @@ function UpdateRow({ version }: { version: string }) {
       </div>
 
       {state === "downloading" && (
-        <div class="mt-3 h-1 overflow-hidden rounded-full bg-[var(--color-surface-2)]">
+        <div class="mt-3 h-1 overflow-hidden rounded-full bg-surface-2">
           <div
             class="h-full rounded-full bg-[var(--color-accent)] transition-[width] duration-200"
             style={{ width: total > 0 ? `${percent}%` : "35%" }}
@@ -943,7 +965,7 @@ function UpdateRow({ version }: { version: string }) {
       {(state === "available" || state === "ready") && (
         <button
           onClick={() => openExternal(RELEASES_URL)}
-          class="mt-2 inline-flex items-center gap-1.5 text-[11px] font-medium text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]"
+          class="mt-2 inline-flex items-center gap-1.5 text-[11px] font-medium text-muted transition-colors hover:text-text"
         >
           See what's new in v{next}
           <ExternalLinkIcon width={11} height={11} />
@@ -969,8 +991,8 @@ function Choice({
       aria-pressed={active}
       class={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
         active
-          ? "border-[var(--color-accent)] bg-[var(--color-accent-soft)] text-[var(--color-text)]"
-          : "border-[var(--color-border)] text-[var(--color-muted)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+          ? "border-(--color-accent) bg-accent-soft text-text"
+          : "border-border text-muted hover:bg-surface-2 hover:text-text"
       }`}
     >
       {label}
@@ -988,7 +1010,7 @@ function ExternalButton({
   return (
     <button
       onClick={onClick}
-      class="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+      class="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted transition-colors hover:bg-surface-2 hover:text-text"
     >
       {label}
       <ExternalLinkIcon width={13} height={13} />
@@ -1005,10 +1027,10 @@ function Section({
 }) {
   return (
     <section class="mb-6">
-      <h3 class="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-[var(--color-faint)]">
+      <h3 class="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-faint">
         {title}
       </h3>
-      <div class="overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]">
+      <div class="overflow-hidden rounded-xl border border-border bg-[var(--color-surface)]">
         {children}
       </div>
     </section>
@@ -1029,13 +1051,13 @@ function Row({
   return (
     <div class="flex items-center gap-3 px-4 py-3.5">
       {icon && (
-        <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[var(--color-surface-2)] text-[var(--color-muted)]">
+        <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-surface-2 text-muted">
           {icon}
         </span>
       )}
       <div class="min-w-0 flex-1">
-        <p class="text-sm font-medium text-[var(--color-text)]">{title}</p>
-        {desc && <p class="mt-0.5 text-xs text-[var(--color-muted)]">{desc}</p>}
+        <p class="text-sm font-medium text-text">{title}</p>
+        {desc && <p class="mt-0.5 text-xs text-muted">{desc}</p>}
       </div>
       <div class="shrink-0">{children}</div>
     </div>
@@ -1058,7 +1080,7 @@ function Switch({
       disabled={disabled}
       onClick={onChange}
       class={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
-        checked ? "bg-[var(--color-accent)]" : "bg-[var(--color-surface-2)]"
+        checked ? "bg-[var(--color-accent)]" : "bg-surface-2"
       }`}
     >
       <span
@@ -1086,14 +1108,14 @@ function ModeOption({
       onClick={onSelect}
       class={`flex items-start gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors ${
         active
-          ? "border-[var(--color-accent)] bg-[var(--color-accent-soft)]"
-          : "border-[var(--color-border)] hover:bg-[var(--color-surface-2)]"
+          ? "border-(--color-accent) bg-accent-soft"
+          : "border-border hover:bg-surface-2"
       }`}
     >
       <span
         class={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full border-2 transition-colors ${
           active
-            ? "border-[var(--color-accent)]"
+            ? "border-(--color-accent)"
             : "border-[var(--color-border-strong)]"
         }`}
       >
@@ -1102,8 +1124,8 @@ function ModeOption({
         )}
       </span>
       <div class="min-w-0">
-        <p class="text-sm font-medium text-[var(--color-text)]">{title}</p>
-        <p class="mt-0.5 text-xs text-[var(--color-muted)]">{desc}</p>
+        <p class="text-sm font-medium text-text">{title}</p>
+        <p class="mt-0.5 text-xs text-muted">{desc}</p>
       </div>
     </button>
   );

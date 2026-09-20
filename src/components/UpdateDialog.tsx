@@ -71,7 +71,7 @@ export function UpdateDialog() {
     >
       <div class="w-full max-w-md animate-fade-rise rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] p-5 shadow-2xl shadow-black/50">
         <div class="flex items-start gap-3">
-          <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[var(--color-accent-soft)] text-[var(--color-accent)]">
+          <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-(--color-accent)">
             {asking ? (
               <DownloadIcon width={18} height={18} />
             ) : (
@@ -79,12 +79,12 @@ export function UpdateDialog() {
             )}
           </span>
           <div class="min-w-0 flex-1">
-            <h3 class="text-base font-semibold text-[var(--color-text)]">
+            <h3 class="text-base font-semibold text-text">
               {asking
                 ? `todofy v${promptVersion} is available`
                 : `todofy v${version} is installed`}
             </h3>
-            <p class="mt-1.5 text-sm leading-relaxed text-[var(--color-muted)]">
+            <p class="mt-1.5 text-sm leading-relaxed text-muted">
               {asking
                 ? "Download and install it now? todofy keeps running while it downloads."
                 : "Restart to start using it. Your tasks and timers are saved either way."}
@@ -93,11 +93,9 @@ export function UpdateDialog() {
         </div>
 
         {asking && notes && (
-          <div class="mt-4 max-h-40 overflow-y-auto rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-3">
-            <p class="text-xs font-semibold text-[var(--color-faint)] uppercase">
-              What's new
-            </p>
-            <p class="mt-1.5 text-xs leading-relaxed whitespace-pre-line text-[var(--color-muted)]">
+          <div class="mt-4 max-h-40 overflow-y-auto rounded-lg border border-border bg-[var(--color-surface)] p-3">
+            <p class="text-xs font-semibold text-faint uppercase">What's new</p>
+            <p class="mt-1.5 text-xs leading-relaxed whitespace-pre-line text-muted">
               {notes}
             </p>
           </div>
@@ -106,7 +104,7 @@ export function UpdateDialog() {
         <div class="mt-5 flex justify-end gap-2">
           <button
             onClick={close}
-            class="rounded-lg px-3 py-1.5 text-sm text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+            class="rounded-lg px-3 py-1.5 text-sm text-muted transition-colors hover:bg-surface-2 hover:text-text"
           >
             {asking ? "Not now" : "Later"}
           </button>

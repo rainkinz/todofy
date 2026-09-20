@@ -19,7 +19,11 @@ type AppItems = () => MenuItem[];
  * and any app actions the window passes in.
  */
 export function ContextMenu({ appItems }: { appItems?: AppItems }) {
-  const [menu, setMenu] = useState<{ x: number; y: number; items: Entry[] } | null>(null);
+  const [menu, setMenu] = useState<{
+    x: number;
+    y: number;
+    items: Entry[];
+  } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -86,14 +90,12 @@ export function ContextMenu({ appItems }: { appItems?: AppItems }) {
             }}
             class={`flex w-full items-center justify-between gap-6 rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors ${
               item.danger
-                ? "text-[var(--color-danger)] hover:bg-[var(--color-danger)]/12"
-                : "text-[var(--color-text)] hover:bg-[var(--color-surface-2)]"
+                ? "text-(--color-danger) hover:bg-[var(--color-danger)]/12"
+                : "text-text hover:bg-surface-2"
             }`}
           >
             <span>{item.label}</span>
-            {item.hint && (
-              <span class="text-xs text-[var(--color-faint)]">{item.hint}</span>
-            )}
+            {item.hint && <span class="text-xs text-faint">{item.hint}</span>}
           </button>
         ),
       )}
@@ -106,7 +108,7 @@ function buildItems(target: EventTarget | null, appItems: MenuItem[]): Entry[] {
   const field = fieldOf(target);
   const selected = field
     ? field.value.slice(field.selectionStart ?? 0, field.selectionEnd ?? 0)
-    : window.getSelection()?.toString() ?? "";
+    : (window.getSelection()?.toString() ?? "");
 
   if (field && selected)
     items.push({
@@ -118,7 +120,11 @@ function buildItems(target: EventTarget | null, appItems: MenuItem[]): Entry[] {
       },
     });
   if (selected)
-    items.push({ label: "Copy", hint: "Ctrl+C", onClick: () => writeClipboard(selected) });
+    items.push({
+      label: "Copy",
+      hint: "Ctrl+C",
+      onClick: () => writeClipboard(selected),
+    });
   if (field)
     items.push({
       label: "Paste",
@@ -126,7 +132,11 @@ function buildItems(target: EventTarget | null, appItems: MenuItem[]): Entry[] {
       onClick: async () => replaceSelection(field, await readClipboard()),
     });
   if (field)
-    items.push({ label: "Select all", hint: "Ctrl+A", onClick: () => field.select() });
+    items.push({
+      label: "Select all",
+      hint: "Ctrl+A",
+      onClick: () => field.select(),
+    });
 
   if (appItems.length) {
     if (items.length) items.push("divider");
@@ -135,9 +145,14 @@ function buildItems(target: EventTarget | null, appItems: MenuItem[]): Entry[] {
   return items;
 }
 
-function fieldOf(target: EventTarget | null): HTMLInputElement | HTMLTextAreaElement | null {
-  const el = target instanceof HTMLElement ? target.closest("input, textarea") : null;
-  return el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement ? el : null;
+function fieldOf(
+  target: EventTarget | null,
+): HTMLInputElement | HTMLTextAreaElement | null {
+  const el =
+    target instanceof HTMLElement ? target.closest("input, textarea") : null;
+  return el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement
+    ? el
+    : null;
 }
 
 async function writeClipboard(text: string) {
@@ -158,7 +173,10 @@ async function readClipboard(): Promise<string> {
 
 /** Replace the field's current selection with `text` and fire an input event so
  *  a controlled Preact input picks up the change. */
-function replaceSelection(field: HTMLInputElement | HTMLTextAreaElement, text: string) {
+function replaceSelection(
+  field: HTMLInputElement | HTMLTextAreaElement,
+  text: string,
+) {
   const start = field.selectionStart ?? field.value.length;
   const end = field.selectionEnd ?? field.value.length;
   field.value = field.value.slice(0, start) + text + field.value.slice(end);

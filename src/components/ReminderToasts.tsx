@@ -12,14 +12,14 @@ export function ReminderToasts() {
           key={r.id}
           class="pointer-events-auto flex w-80 animate-slide-left items-start gap-3 rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] p-3 shadow-lg shadow-black/30"
         >
-          <span class="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[var(--color-accent-soft)] text-[var(--color-accent)]">
+          <span class="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-accent-soft text-(--color-accent)">
             <BellIcon width={16} height={16} />
           </span>
           <div class="min-w-0 flex-1">
-            <p class="text-xs font-medium uppercase tracking-wider text-[var(--color-faint)]">
+            <p class="text-xs font-medium uppercase tracking-wider text-faint">
               Reminder
             </p>
-            <p class="truncate text-sm text-[var(--color-text)]">{r.title}</p>
+            <p class="truncate text-sm text-text">{r.title}</p>
             <div class="mt-2 flex gap-2">
               <button
                 onClick={() => {
@@ -37,7 +37,7 @@ export function ReminderToasts() {
                   snoozeTask(r.id, 10);
                   dismissReminder(r.id, false);
                 }}
-                class="rounded-md bg-[var(--color-surface-2)] px-2.5 py-1 text-xs text-[var(--color-muted)] hover:text-[var(--color-text)]"
+                class="rounded-md bg-surface-2 px-2.5 py-1 text-xs text-muted hover:text-text"
               >
                 Snooze 10m
               </button>
@@ -45,7 +45,7 @@ export function ReminderToasts() {
           </div>
           <button
             onClick={() => dismissReminder(r.id)}
-            class="text-[var(--color-faint)] hover:text-[var(--color-text)]"
+            class="text-faint hover:text-text"
             title="Dismiss"
           >
             <CloseIcon width={16} height={16} />

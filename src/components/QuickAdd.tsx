@@ -1,5 +1,5 @@
 import type { ComponentChildren } from "preact";
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { useStore } from "../store";
 import {
   combineDateTime,
@@ -15,6 +15,8 @@ import { BellIcon, CalendarIcon, FlagIcon, PlusIcon, RepeatIcon } from "./Icons"
 import { DatePicker } from "./DatePicker";
 import { EstimatePicker } from "./EstimatePicker";
 import { PriorityPicker } from "./PriorityPicker";
+import { VoiceInputButton } from "./VoiceInputButton";
+import { insertTranscript } from "../lib/voice";
 
 const PRIORITY_COLOR: Record<number, string> = {
   1: "var(--color-prio-1)",
@@ -40,6 +42,9 @@ export function QuickAdd() {
   const [repeat, setRepeat] = useState<RepeatRule | null>(null);
   const [estimate, setEstimate] = useState<number | null>(null);
   const [focused, setFocused] = useState(false);
+  const [voiceBusy, setVoiceBusy] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const voicePanelRef = useRef<HTMLDivElement>(null);
 
   // When you switch views, pre-fill the date so the task shows up there.
   useEffect(() => setDue(defaultDue(view)), [view]);
@@ -55,6 +60,7 @@ export function QuickAdd() {
 
   const submit = async (e: Event) => {
     e.preventDefault();
+    if (voiceBusy) return;
     // Natural-language tokens win over the manual pickers when present.
     const finalTitle = parsed.title.trim();
     if (!finalTitle) return;
@@ -90,9 +96,11 @@ export function QuickAdd() {
       onSubmit={submit}
       class={`quick-add-composer ${focused ? "is-focused" : ""}`}
     >
+      <div ref={voicePanelRef} class="voice-capture-host" />
       <div class="quick-add-main">
         <PlusIcon width={22} height={22} />
         <input
+          ref={inputRef}
           id="quick-add-input"
           value={title}
           onInput={(e) => setTitle(e.currentTarget.value)}
@@ -101,6 +109,17 @@ export function QuickAdd() {
           placeholder="Capture anything…  try “pay rent Friday 5pm”"
           class="quick-add-input"
         />
+        <VoiceInputButton kind="task" getPanelHost={() => voicePanelRef.current} onBusyChange={setVoiceBusy} onTranscript={(text) => {
+          const input = inputRef.current;
+          const start = input?.selectionStart ?? title.length;
+          const end = input?.selectionEnd ?? title.length;
+          const next = insertTranscript(title, text, start, end);
+          setTitle(next.value);
+          requestAnimationFrame(() => {
+            input?.focus();
+            input?.setSelectionRange(next.caret, next.caret);
+          });
+        }} />
         <PriorityPicker value={priority} onChange={setPriority} placement="top" />
         <EstimatePicker
           value={estimate}
@@ -118,7 +137,7 @@ export function QuickAdd() {
         />
         <button
           type="submit"
-          disabled={!parsed.title.trim()}
+          disabled={!parsed.title.trim() || voiceBusy}
           class="quick-add-submit"
         >
           Add

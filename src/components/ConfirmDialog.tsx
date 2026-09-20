@@ -34,11 +34,9 @@ export function ConfirmDialog() {
       onMouseDown={(e) => e.target === e.currentTarget && closeConfirm()}
     >
       <div class="w-full max-w-sm animate-fade-rise rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] p-5 shadow-2xl shadow-black/50">
-        <h3 class="text-base font-semibold text-[var(--color-text)]">
-          {confirm.title}
-        </h3>
+        <h3 class="text-base font-semibold text-text">{confirm.title}</h3>
         {confirm.message && (
-          <p class="mt-1.5 text-sm leading-relaxed text-[var(--color-muted)]">
+          <p class="mt-1.5 text-sm leading-relaxed text-muted">
             {confirm.message}
           </p>
         )}
@@ -46,7 +44,7 @@ export function ConfirmDialog() {
           <button
             onClick={closeConfirm}
             disabled={busy}
-            class="rounded-lg px-3 py-1.5 text-sm text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+            class="rounded-lg px-3 py-1.5 text-sm text-muted transition-colors hover:bg-surface-2 hover:text-text"
           >
             Cancel
           </button>

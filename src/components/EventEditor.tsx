@@ -30,7 +30,9 @@ export function EventEditor({
   );
   const [allDay, setAllDay] = useState(event?.allDay ?? defaultAllDay ?? false);
   const [startTime, setStartTime] = useState(
-    event && !event.allDay ? timeOf(event.startAt) : (defaultStartTime ?? "09:00"),
+    event && !event.allDay
+      ? timeOf(event.startAt)
+      : (defaultStartTime ?? "09:00"),
   );
   const [endTime, setEndTime] = useState(
     event && !event.allDay
@@ -99,16 +101,16 @@ export function EventEditor({
         <button
           onClick={onClose}
           title="Close"
-          class="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full text-[var(--color-faint)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+          class="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full text-faint transition-colors hover:bg-surface-2 hover:text-text"
         >
           <CloseIcon width={16} height={16} />
         </button>
 
         <div class="flex items-center gap-2.5 px-6 pt-6 pb-2">
-          <span class="grid h-9 w-9 place-items-center rounded-xl bg-[var(--color-surface-2)] text-[var(--color-muted)]">
+          <span class="grid h-9 w-9 place-items-center rounded-xl bg-surface-2 text-muted">
             <CalendarIcon width={18} height={18} />
           </span>
-          <h3 class="text-base font-semibold text-[var(--color-text)]">
+          <h3 class="text-base font-semibold text-text">
             {event ? "Edit event" : "New event"}
           </h3>
         </div>
@@ -121,7 +123,7 @@ export function EventEditor({
             placeholder="Event title"
             autoFocus
             onKeyDown={(e) => e.key === "Enter" && void save()}
-            class="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] outline-none focus:ring-1 focus:ring-[var(--color-accent)] disabled:opacity-70"
+            class="w-full rounded-lg border border-border bg-[var(--color-bg)] px-3 py-2 text-sm text-text outline-none focus:ring-1 focus:ring-[var(--color-accent)] disabled:opacity-70"
           />
 
           <div class="flex items-center justify-between">
@@ -133,7 +135,7 @@ export function EventEditor({
                 placeholder="Pick a date"
               />
             </div>
-            <label class="flex cursor-pointer items-center gap-2 text-xs text-[var(--color-muted)]">
+            <label class="flex cursor-pointer items-center gap-2 text-xs text-muted">
               All day
               <Switch checked={allDay} onChange={() => setAllDay((v) => !v)} />
             </label>
@@ -146,7 +148,7 @@ export function EventEditor({
                 value={startTime || null}
                 onChange={(v) => setStartTime(v ?? "")}
               />
-              <span class="text-xs text-[var(--color-faint)]">to</span>
+              <span class="text-xs text-faint">to</span>
               <TimeField
                 label="End"
                 value={endTime || null}
@@ -157,7 +159,7 @@ export function EventEditor({
           )}
 
           {invalidTimeRange && (
-            <p role="alert" class="text-xs text-[var(--color-danger)]">
+            <p role="alert" class="text-xs text-(--color-danger)">
               End time must be later than start time.
             </p>
           )}
@@ -167,7 +169,7 @@ export function EventEditor({
             onInput={(e) => setDescription(e.currentTarget.value)}
             placeholder="Notes (optional)"
             rows={3}
-            class="w-full resize-none rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
+            class="w-full resize-none rounded-lg border border-border bg-[var(--color-bg)] px-3 py-2 text-sm text-text outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
           />
 
           <div class="mt-1 flex gap-2">
@@ -177,7 +179,7 @@ export function EventEditor({
                 onClick={() => void remove()}
                 disabled={busy}
                 title="Delete event"
-                class="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[var(--color-border)] text-[var(--color-muted)] transition-colors hover:border-[var(--color-danger)]/50 hover:text-[var(--color-danger)] disabled:opacity-50"
+                class="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border text-muted transition-colors hover:border-(--color-danger)/50 hover:text-(--color-danger) disabled:opacity-50"
               >
                 <TrashIcon width={16} height={16} />
               </button>
@@ -186,7 +188,7 @@ export function EventEditor({
               type="button"
               onClick={onClose}
               disabled={busy}
-              class="flex-1 rounded-lg border border-[var(--color-border)] px-3 py-2.5 text-sm font-medium text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)] disabled:opacity-50"
+              class="flex-1 rounded-lg border border-border px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-surface-2 hover:text-text disabled:opacity-50"
             >
               Cancel
             </button>
@@ -230,7 +232,7 @@ function Switch({
       disabled={disabled}
       onClick={onChange}
       class={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
-        checked ? "bg-[var(--color-accent)]" : "bg-[var(--color-surface-2)]"
+        checked ? "bg-[var(--color-accent)]" : "bg-surface-2"
       }`}
     >
       <span

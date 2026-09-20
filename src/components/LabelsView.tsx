@@ -5,8 +5,15 @@ import { EditIcon, PlusIcon, SearchIcon, TrashIcon } from "./Icons";
 import { LabelForm } from "./LabelForm";
 
 export function LabelsView() {
-  const { tasks, labels, setView, addLabel, editLabel, removeLabel, requestConfirm } =
-    useStore();
+  const {
+    tasks,
+    labels,
+    setView,
+    addLabel,
+    editLabel,
+    removeLabel,
+    requestConfirm,
+  } = useStore();
   const [query, setQuery] = useState("");
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -19,7 +26,7 @@ export function LabelsView() {
     <main class="redesign-secondary labels-main flex flex-1 flex-col overflow-hidden bg-[var(--color-bg)]">
       <header class="app-page-header shrink-0 px-8 pt-8 pb-4">
         <h2 class="text-2xl font-semibold tracking-tight">Labels</h2>
-        <p class="mt-0.5 text-sm text-[var(--color-muted)]">
+        <p class="mt-0.5 text-sm text-muted">
           Search, edit, and manage your labels
         </p>
       </header>
@@ -29,13 +36,13 @@ export function LabelsView() {
           <SearchIcon
             width={15}
             height={15}
-            class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-faint)]"
+            class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-faint"
           />
           <input
             value={query}
             onInput={(e) => setQuery(e.currentTarget.value)}
             placeholder="Search labels…"
-            class="w-full rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] py-2 pl-8 pr-3 text-sm outline-none focus:border-[var(--color-accent)]"
+            class="w-full rounded-md border border-border bg-[var(--color-surface)] py-2 pl-8 pr-3 text-sm outline-none focus:border-(--color-accent)"
           />
         </div>
         <button
@@ -64,8 +71,10 @@ export function LabelsView() {
         )}
 
         {filtered.length === 0 ? (
-          <p class="mt-10 text-center text-sm text-[var(--color-faint)]">
-            {labels.length === 0 ? "No labels yet." : "No labels match your search."}
+          <p class="mt-10 text-center text-sm text-faint">
+            {labels.length === 0
+              ? "No labels yet."
+              : "No labels match your search."}
           </p>
         ) : (
           <div class="flex flex-col gap-1">
@@ -90,7 +99,7 @@ export function LabelsView() {
               return (
                 <div
                   key={l.id}
-                  class="group flex items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm transition-colors hover:border-[var(--color-border)] hover:bg-[var(--color-surface)]"
+                  class="group flex items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm transition-colors hover:border-border hover:bg-[var(--color-surface)]"
                 >
                   <button
                     onClick={() => setView(id)}
@@ -101,7 +110,7 @@ export function LabelsView() {
                       style={{ background: l.color }}
                     />
                     <span class="flex-1 truncate">{l.name}</span>
-                    <span class="text-xs tabular-nums text-[var(--color-faint)]">
+                    <span class="text-xs tabular-nums text-faint">
                       {count} active
                     </span>
                   </button>
@@ -111,7 +120,7 @@ export function LabelsView() {
                         setAdding(false);
                         setEditingId(l.id);
                       }}
-                      class="rounded p-1 text-[var(--color-faint)] hover:text-[var(--color-text)]"
+                      class="rounded p-1 text-faint hover:text-text"
                       title="Edit label"
                     >
                       <EditIcon width={14} height={14} />
@@ -126,7 +135,7 @@ export function LabelsView() {
                           onConfirm: () => removeLabel(l.id),
                         })
                       }
-                      class="rounded p-1 text-[var(--color-faint)] hover:text-[var(--color-danger)]"
+                      class="rounded p-1 text-faint hover:text-(--color-danger)"
                       title="Delete label"
                     >
                       <TrashIcon width={14} height={14} />

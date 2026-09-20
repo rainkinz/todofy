@@ -37,7 +37,10 @@ export function EstimatePicker({
     // Rough initial spot; corrected once measured in the layout effect below.
     setPos({
       top: placement === "top" ? r.top - 4 : r.bottom + 4,
-      left: Math.max(MARGIN, Math.min(r.right - POPOVER_W, window.innerWidth - POPOVER_W - MARGIN)),
+      left: Math.max(
+        MARGIN,
+        Math.min(r.right - POPOVER_W, window.innerWidth - POPOVER_W - MARGIN),
+      ),
     });
     setOpen(true);
   };
@@ -55,7 +58,9 @@ export function EstimatePicker({
     } else {
       const below = trigger.bottom + 4;
       top =
-        below + h <= window.innerHeight - MARGIN ? below : Math.max(MARGIN, trigger.top - 4 - h);
+        below + h <= window.innerHeight - MARGIN
+          ? below
+          : Math.max(MARGIN, trigger.top - 4 - h);
     }
     const left = Math.max(
       MARGIN,
@@ -101,8 +106,8 @@ export function EstimatePicker({
         ref={btnRef}
         type="button"
         onClick={() => (open ? setOpen(false) : openPicker())}
-        class={`flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-[var(--color-surface-2)] ${
-          value ? "text-[var(--color-accent)]" : "text-[var(--color-faint)]"
+        class={`flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-surface-2 ${
+          value ? "text-(--color-accent)" : "text-faint"
         }`}
         title="Estimated time for this task"
       >
@@ -112,62 +117,62 @@ export function EstimatePicker({
 
       {open && (
         <Portal>
-        <div
-          ref={ref}
-          style={{
-            position: "fixed",
-            top: `${pos.top}px`,
-            left: `${pos.left}px`,
-            width: `${POPOVER_W}px`,
-          }}
-          class="z-[150] animate-fade-rise rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] p-2.5 shadow-2xl shadow-black/50"
-        >
-          <div class="grid grid-cols-3 gap-1">
-            {PRESETS.map((minutes) => (
+          <div
+            ref={ref}
+            style={{
+              position: "fixed",
+              top: `${pos.top}px`,
+              left: `${pos.left}px`,
+              width: `${POPOVER_W}px`,
+            }}
+            class="z-[150] animate-fade-rise rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] p-2.5 shadow-2xl shadow-black/50"
+          >
+            <div class="grid grid-cols-3 gap-1">
+              {PRESETS.map((minutes) => (
+                <button
+                  key={minutes}
+                  type="button"
+                  onClick={() => pick(minutes)}
+                  class={`rounded-lg px-2 py-1.5 text-xs transition-colors ${
+                    value === minutes
+                      ? "bg-[var(--color-accent)] text-white"
+                      : "bg-surface-2 text-muted hover:text-text"
+                  }`}
+                >
+                  {formatMinutes(minutes)}
+                </button>
+              ))}
+            </div>
+
+            <div class="mt-2 border-t border-border pt-2">
+              <input
+                value={draft}
+                onInput={(e) => setDraft(e.currentTarget.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    // Kept off the surrounding task form, same as the time field.
+                    e.preventDefault();
+                    e.stopPropagation();
+                    commitDraft();
+                  }
+                }}
+                onBlur={commitDraft}
+                placeholder="e.g. 1h 30m"
+                aria-label="Custom estimate"
+                class="w-full rounded-md bg-[var(--color-bg)] px-2 py-1 text-xs text-text outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
+              />
+            </div>
+
+            {value !== null && (
               <button
-                key={minutes}
                 type="button"
-                onClick={() => pick(minutes)}
-                class={`rounded-lg px-2 py-1.5 text-xs transition-colors ${
-                  value === minutes
-                    ? "bg-[var(--color-accent)] text-white"
-                    : "bg-[var(--color-surface-2)] text-[var(--color-muted)] hover:text-[var(--color-text)]"
-                }`}
+                onClick={() => pick(null)}
+                class="mt-2 w-full rounded-md border-t border-border pt-2 text-xs text-faint hover:text-(--color-danger)"
               >
-                {formatMinutes(minutes)}
+                Clear estimate
               </button>
-            ))}
+            )}
           </div>
-
-          <div class="mt-2 border-t border-[var(--color-border)] pt-2">
-            <input
-              value={draft}
-              onInput={(e) => setDraft(e.currentTarget.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  // Kept off the surrounding task form, same as the time field.
-                  e.preventDefault();
-                  e.stopPropagation();
-                  commitDraft();
-                }
-              }}
-              onBlur={commitDraft}
-              placeholder="e.g. 1h 30m"
-              aria-label="Custom estimate"
-              class="w-full rounded-md bg-[var(--color-bg)] px-2 py-1 text-xs text-[var(--color-text)] outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
-            />
-          </div>
-
-          {value !== null && (
-            <button
-              type="button"
-              onClick={() => pick(null)}
-              class="mt-2 w-full rounded-md border-t border-[var(--color-border)] pt-2 text-xs text-[var(--color-faint)] hover:text-[var(--color-danger)]"
-            >
-              Clear estimate
-            </button>
-          )}
-        </div>
         </Portal>
       )}
     </>

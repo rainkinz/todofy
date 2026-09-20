@@ -72,7 +72,8 @@ export function ProPaywall() {
   useEffect(() => {
     if (!gateOpen) return;
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !busy && !useAuth.getState().dialogOpen) closeGate();
+      if (event.key === "Escape" && !busy && !useAuth.getState().dialogOpen)
+        closeGate();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -107,7 +108,9 @@ export function ProPaywall() {
   return (
     <div
       class="fixed inset-0 z-[110] grid place-items-center overflow-y-auto bg-black/65 p-4 backdrop-blur-sm"
-      onMouseDown={(event) => event.target === event.currentTarget && !busy && closeGate()}
+      onMouseDown={(event) =>
+        event.target === event.currentTarget && !busy && closeGate()
+      }
     >
       <div
         role="dialog"
@@ -123,30 +126,35 @@ export function ProPaywall() {
           disabled={busy}
           title="Close"
           aria-label="Close Todofy Pro"
-          class="absolute right-4 top-4 z-10 grid h-8 w-8 place-items-center rounded-full text-[var(--color-faint)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)] disabled:opacity-50"
+          class="absolute right-4 top-4 z-10 grid h-8 w-8 place-items-center rounded-full text-faint transition-colors hover:bg-surface-2 hover:text-text disabled:opacity-50"
         >
           <CloseIcon width={17} height={17} />
         </button>
 
         <div class="relative max-h-[calc(100vh-2rem)] overflow-y-auto px-6 py-7 sm:px-10 sm:py-9">
           <header class="mx-auto max-w-md text-center">
-            <span class="mx-auto grid h-11 w-11 place-items-center rounded-[14px] border border-[var(--color-accent)]/20 bg-[var(--color-accent-soft)] text-[var(--color-accent)] shadow-lg shadow-black/10">
+            <span class="mx-auto grid h-11 w-11 place-items-center rounded-[14px] border border-(--color-accent)/20 bg-accent-soft text-(--color-accent) shadow-lg shadow-black/10">
               <CrownIcon width={22} height={22} />
             </span>
-            <p class="mt-4 text-[10px] font-semibold uppercase tracking-[0.26em] text-[var(--color-accent)]">
+            <p class="mt-4 text-[10px] font-semibold uppercase tracking-[0.26em] text-(--color-accent)">
               Todofy Pro
             </p>
-            <h2 id="pro-dialog-title" class="mt-2 text-[27px] font-semibold leading-[1.18] tracking-[-0.035em] text-[var(--color-text)] sm:text-[30px]">
+            <h2
+              id="pro-dialog-title"
+              class="mt-2 text-[27px] font-semibold leading-[1.18] tracking-[-0.035em] text-text sm:text-[30px]"
+            >
               Sync without changing how you work.
             </h2>
-            <p class="mx-auto mt-3 max-w-sm text-[13px] leading-5 text-[var(--color-muted)]">
-              Carry your Todofy system between devices while keeping the quiet, local-first experience you already know.
+            <p class="mx-auto mt-3 max-w-sm text-[13px] leading-5 text-muted">
+              Carry your Todofy system between devices while keeping the quiet,
+              local-first experience you already know.
             </p>
           </header>
 
           {testMode && (
             <Notice tone="warning" className="mt-6">
-              Test checkout is enabled. Test purchases do not grant live production access.
+              Test checkout is enabled. Test purchases do not grant live
+              production access.
             </Notice>
           )}
 
@@ -164,12 +172,17 @@ export function ProPaywall() {
             />
           ) : (
             <div class="mt-7">
-              <AccessNotice state={state} allowed={allowed} plan={plan} validUntil={validUntil} />
+              <AccessNotice
+                state={state}
+                allowed={allowed}
+                plan={plan}
+                validUntil={validUntil}
+              />
 
               <div
                 role="group"
                 aria-label="Billing period"
-                class="mx-auto grid max-w-[330px] grid-cols-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] p-1"
+                class="mx-auto grid max-w-[330px] grid-cols-2 rounded-xl border border-border bg-[var(--color-bg)] p-1"
               >
                 <PlanToggle
                   active={selectedPlan === "monthly"}
@@ -182,18 +195,26 @@ export function ProPaywall() {
                   onClick={() => setSelectedPlan("yearly")}
                 >
                   Yearly
-                  <span class={`ml-1.5 text-[9px] font-semibold ${selectedPlan === "yearly" ? "text-[var(--color-accent)]" : "text-[var(--color-faint)]"}`}>
+                  <span
+                    class={`ml-1.5 text-[9px] font-semibold ${selectedPlan === "yearly" ? "text-(--color-accent)" : "text-faint"}`}
+                  >
                     SAVE
                   </span>
                 </PlanToggle>
               </div>
 
-              <SelectedPlanPrice plan={selectedPlan} catalogPlan={selectedCatalogPlan} />
+              <SelectedPlanPrice
+                plan={selectedPlan}
+                catalogPlan={selectedCatalogPlan}
+              />
 
               <div class="mx-auto mt-5 max-w-[390px] space-y-2.5">
                 {FEATURES.map((feature) => (
-                  <p key={feature} class="flex items-start gap-2.5 text-[12px] leading-5 text-[var(--color-muted)]">
-                    <span class="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-[var(--color-accent-soft)] text-[var(--color-accent)]">
+                  <p
+                    key={feature}
+                    class="flex items-start gap-2.5 text-[12px] leading-5 text-muted"
+                  >
+                    <span class="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-accent-soft text-(--color-accent)">
                       <CheckIcon width={10} height={10} stroke-width={3} />
                     </span>
                     {feature}
@@ -208,19 +229,28 @@ export function ProPaywall() {
                 class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-accent)] px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-black/15 transition-[background-color,transform] hover:bg-[var(--color-accent-hover)] active:translate-y-px disabled:opacity-55"
               >
                 <LemonSqueezyIcon width={17} height={17} />
-                {busy ? "Opening secure checkout…" : "Continue to secure checkout"}
-                {!busy && <ExternalLinkIcon width={14} height={14} class="opacity-70" />}
+                {busy
+                  ? "Opening secure checkout…"
+                  : "Continue to secure checkout"}
+                {!busy && (
+                  <ExternalLinkIcon width={14} height={14} class="opacity-70" />
+                )}
               </button>
-              <p class="mt-2 flex items-center justify-center gap-1.5 text-[10px] text-[var(--color-faint)]">
+              <p class="mt-2 flex items-center justify-center gap-1.5 text-[10px] text-faint">
                 <LemonSqueezyIcon width={12} height={12} />
                 Secure checkout and billing by Lemon Squeezy
               </p>
 
               {catalogState === "loading" && !session && (
-                <p class="mt-3 text-center text-[11px] text-[var(--color-muted)]">Loading secure checkout…</p>
+                <p class="mt-3 text-center text-[11px] text-muted">
+                  Loading secure checkout…
+                </p>
               )}
               {catalogError && (
-                <div role="alert" class="mt-4 flex items-center justify-between gap-3 rounded-lg bg-[var(--color-danger)]/10 px-3 py-2.5 text-xs text-[var(--color-danger)]">
+                <div
+                  role="alert"
+                  class="mt-4 flex items-center justify-between gap-3 rounded-lg bg-[var(--color-danger)]/10 px-3 py-2.5 text-xs text-(--color-danger)"
+                >
                   <span>{catalogError}</span>
                   <button
                     type="button"
@@ -233,7 +263,8 @@ export function ProPaywall() {
               )}
               {lastCheckoutPlan && (
                 <Notice tone="accent" className="mt-4">
-                  Checkout opened. After purchase, return here and activate the license key Lemon Squeezy sends you.
+                  Checkout opened. After purchase, return here and activate the
+                  license key Lemon Squeezy sends you.
                 </Notice>
               )}
 
@@ -244,11 +275,16 @@ export function ProPaywall() {
                 aria-expanded={licenseOpen}
                 aria-controls="pro-license-panel"
                 onClick={() => setLicenseOpen((value) => !value)}
-                class="mx-auto flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]"
+                class="mx-auto flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium text-muted transition-colors hover:text-text"
               >
-                <KeyIcon width={15} height={15} class="text-[var(--color-accent)]" />
+                <KeyIcon width={15} height={15} class="text-(--color-accent)" />
                 Have a license key?
-                <span class={`text-[10px] transition-transform ${licenseOpen ? "rotate-180" : ""}`} aria-hidden="true">⌄</span>
+                <span
+                  class={`text-[10px] transition-transform ${licenseOpen ? "rotate-180" : ""}`}
+                  aria-hidden="true"
+                >
+                  ⌄
+                </span>
               </button>
 
               {licenseOpen && (
@@ -275,7 +311,7 @@ export function ProPaywall() {
                     type="button"
                     disabled={busy}
                     onClick={() => void openPortal().catch(() => {})}
-                    class="font-medium text-[var(--color-muted)] hover:text-[var(--color-text)] disabled:opacity-50"
+                    class="font-medium text-muted hover:text-text disabled:opacity-50"
                   >
                     Manage previous plan
                   </button>
@@ -284,7 +320,7 @@ export function ProPaywall() {
                     type="button"
                     disabled={state === "checking" || busy}
                     onClick={() => void refresh()}
-                    class="font-medium text-[var(--color-muted)] hover:text-[var(--color-text)] disabled:opacity-50"
+                    class="font-medium text-muted hover:text-text disabled:opacity-50"
                   >
                     {state === "checking" ? "Checking…" : "Refresh access"}
                   </button>
@@ -294,17 +330,26 @@ export function ProPaywall() {
           )}
 
           {error && (
-            <p role="alert" class="mt-4 rounded-lg bg-[var(--color-danger)]/10 px-3 py-2.5 text-xs text-[var(--color-danger)]">
+            <p
+              role="alert"
+              class="mt-4 rounded-lg bg-[var(--color-danger)]/10 px-3 py-2.5 text-xs text-(--color-danger)"
+            >
               {error}
             </p>
           )}
 
-          <footer class="mt-7 text-center text-[10px] leading-4 text-[var(--color-faint)]">
-            <p>Local features remain free. Cancel anytime, with a 14-day refund.</p>
+          <footer class="mt-7 text-center text-[10px] leading-4 text-faint">
+            <p>
+              Local features remain free. Cancel anytime, with a 14-day refund.
+            </p>
             <p class="mt-1.5 flex items-center justify-center gap-2">
-              <LegalLink href="https://unifybrowse.com/products/todofy/terms">Terms</LegalLink>
+              <LegalLink href="https://unifybrowse.com/products/todofy/terms">
+                Terms
+              </LegalLink>
               <span aria-hidden="true">·</span>
-              <LegalLink href="https://unifybrowse.com/products/todofy/privacy">Privacy</LegalLink>
+              <LegalLink href="https://unifybrowse.com/products/todofy/privacy">
+                Privacy
+              </LegalLink>
             </p>
           </footer>
         </div>
@@ -329,8 +374,8 @@ function PlanToggle({
       onClick={onClick}
       class={`rounded-lg px-3 py-2 text-xs font-medium transition-all ${
         active
-          ? "bg-[var(--color-surface-2)] text-[var(--color-text)] shadow-sm"
-          : "text-[var(--color-muted)] hover:text-[var(--color-text)]"
+          ? "bg-surface-2 text-text shadow-sm"
+          : "text-muted hover:text-text"
       }`}
     >
       {children}
@@ -349,13 +394,13 @@ function SelectedPlanPrice({
   const period = plan === "monthly" ? "month" : "year";
   return (
     <div class="mt-6 text-center">
-      <p class="flex items-end justify-center gap-2 text-[var(--color-text)]">
+      <p class="flex items-end justify-center gap-2 text-text">
         <span class="text-[38px] font-semibold leading-none tracking-[-0.045em]">
           {formatMoney(amount, catalogPlan?.currency ?? "EUR")}
         </span>
-        <span class="pb-0.5 text-xs text-[var(--color-muted)]">/ {period}</span>
+        <span class="pb-0.5 text-xs text-muted">/ {period}</span>
       </p>
-      <p class="mt-2 min-h-4 text-[11px] font-medium text-[var(--color-accent)]">
+      <p class="mt-2 min-h-4 text-[11px] font-medium text-(--color-accent)">
         {plan === "yearly" ? "Save €8.88 every year" : "Simple monthly billing"}
       </p>
     </div>
@@ -389,27 +434,42 @@ function AccessNotice({
     return <Notice className="mb-5">Checking your current Pro access…</Notice>;
   }
   if (state === "pending") {
-    return <Notice tone="accent" className="mb-5">Your purchase is still being confirmed. You can refresh access in a moment.</Notice>;
+    return (
+      <Notice tone="accent" className="mb-5">
+        Your purchase is still being confirmed. You can refresh access in a
+        moment.
+      </Notice>
+    );
   }
   if (state === "expired") {
-    return <Notice className="mb-5">Your previous Pro plan has ended. Choose a plan to restore Cloud Sync.</Notice>;
+    return (
+      <Notice className="mb-5">
+        Your previous Pro plan has ended. Choose a plan to restore Cloud Sync.
+      </Notice>
+    );
   }
   if (state === "revoked") {
-    return <Notice className="mb-5">This account no longer has Pro access. Choose a plan or activate a valid license.</Notice>;
+    return (
+      <Notice className="mb-5">
+        This account no longer has Pro access. Choose a plan or activate a valid
+        license.
+      </Notice>
+    );
   }
   return null;
 }
 
 function SignedOutActivation({ onSignIn }: { onSignIn: () => void }) {
   return (
-    <div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-center">
-      <p class="text-xs leading-5 text-[var(--color-muted)]">
-        Sign in or create an account first. Your license will be linked to that account on all your devices.
+    <div class="rounded-xl border border-border bg-[var(--color-surface)] p-4 text-center">
+      <p class="text-xs leading-5 text-muted">
+        Sign in or create an account first. Your license will be linked to that
+        account on all your devices.
       </p>
       <button
         type="button"
         onClick={onSignIn}
-        class="mt-3 w-full rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3 py-2.5 text-sm font-medium text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface-2)]"
+        class="mt-3 w-full rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3 py-2.5 text-sm font-medium text-text transition-colors hover:bg-surface-2"
       >
         Sign in or create account
       </button>
@@ -435,9 +495,14 @@ function LicenseForm({
   onSubmit: (event: Event) => void;
 }) {
   return (
-    <form onSubmit={onSubmit} class="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4">
-      <p class="text-center text-[11px] leading-5 text-[var(--color-muted)]">
-        Activate for <strong class="font-medium text-[var(--color-text)]">{email ?? "this account"}</strong>. A license can belong to only one Todofy account.
+    <form
+      onSubmit={onSubmit}
+      class="rounded-xl border border-border bg-[var(--color-surface)] p-4"
+    >
+      <p class="text-center text-[11px] leading-5 text-muted">
+        Activate for{" "}
+        <strong class="font-medium text-text">{email ?? "this account"}</strong>
+        . A license can belong to only one Todofy account.
       </p>
       <label class="mt-3 block">
         <span class="sr-only">Lemon Squeezy license key</span>
@@ -449,7 +514,7 @@ function LicenseForm({
             placeholder="Paste your license key"
             autocomplete="off"
             spellcheck={false}
-            class="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] py-2.5 pl-3 pr-10 font-mono text-xs text-[var(--color-text)] outline-none transition-colors placeholder:font-sans placeholder:text-[var(--color-faint)] focus:border-[var(--color-accent)]"
+            class="w-full rounded-lg border border-border bg-[var(--color-bg)] py-2.5 pl-3 pr-10 font-mono text-xs text-text outline-none transition-colors placeholder:font-sans placeholder:text-faint focus:border-(--color-accent)"
           />
           <button
             type="button"
@@ -457,9 +522,13 @@ function LicenseForm({
             onClick={onReveal}
             title={reveal ? "Hide license" : "Show license"}
             aria-label={reveal ? "Hide license" : "Show license"}
-            class="absolute inset-y-0 right-0 grid w-10 place-items-center text-[var(--color-faint)] hover:text-[var(--color-text)]"
+            class="absolute inset-y-0 right-0 grid w-10 place-items-center text-faint hover:text-text"
           >
-            {reveal ? <EyeOffIcon width={16} height={16} /> : <EyeIcon width={16} height={16} />}
+            {reveal ? (
+              <EyeOffIcon width={16} height={16} />
+            ) : (
+              <EyeIcon width={16} height={16} />
+            )}
           </button>
         </div>
       </label>
@@ -518,20 +587,28 @@ function ActivePlan({
 
   return (
     <div class="mt-8 text-center">
-      <span class={`mx-auto grid h-12 w-12 place-items-center rounded-full ${
-        grace
-          ? "bg-[var(--color-warning)]/12 text-[var(--color-warning)]"
-          : cancelled
-            ? "bg-[var(--color-accent-soft)] text-[var(--color-accent)]"
-            : "bg-[var(--color-success)]/12 text-[var(--color-success)]"
-      }`}>
+      <span
+        class={`mx-auto grid h-12 w-12 place-items-center rounded-full ${
+          grace
+            ? "bg-[var(--color-warning)]/12 text-[var(--color-warning)]"
+            : cancelled
+              ? "bg-accent-soft text-(--color-accent)"
+              : "bg-[var(--color-success)]/12 text-[var(--color-success)]"
+        }`}
+      >
         <CheckIcon width={23} height={23} stroke-width={2.5} />
       </span>
-      <p class="mt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-faint)]">
-        {plan === "monthly" ? "Monthly plan" : plan === "yearly" ? "Yearly plan" : "Cloud Sync"}
+      <p class="mt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-faint">
+        {plan === "monthly"
+          ? "Monthly plan"
+          : plan === "yearly"
+            ? "Yearly plan"
+            : "Cloud Sync"}
       </p>
-      <h3 class="mt-1.5 text-xl font-semibold tracking-tight text-[var(--color-text)]">{heading}</h3>
-      <p class="mx-auto mt-2 max-w-sm text-xs leading-5 text-[var(--color-muted)]">{detail}</p>
+      <h3 class="mt-1.5 text-xl font-semibold tracking-tight text-text">
+        {heading}
+      </h3>
+      <p class="mx-auto mt-2 max-w-sm text-xs leading-5 text-muted">{detail}</p>
 
       <div class="mt-6 grid gap-2 sm:grid-cols-2">
         <button
@@ -547,9 +624,13 @@ function ActivePlan({
             type="button"
             onClick={onManage}
             disabled={busy}
-            class="flex items-center justify-center gap-1.5 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-3 text-sm font-medium text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface-2)] disabled:opacity-50"
+            class="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-[var(--color-bg)] px-3 py-3 text-sm font-medium text-text transition-colors hover:bg-surface-2 disabled:opacity-50"
           >
-            {grace ? "Fix payment" : cancelled ? "View subscription" : "Manage subscription"}
+            {grace
+              ? "Fix payment"
+              : cancelled
+                ? "View subscription"
+                : "Manage subscription"}
             <ExternalLinkIcon width={13} height={13} />
           </button>
         ) : (
@@ -557,7 +638,7 @@ function ActivePlan({
             type="button"
             onClick={onRefresh}
             disabled={busy}
-            class="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-3 text-sm font-medium text-[var(--color-text)] transition-colors hover:bg-[var(--color-surface-2)] disabled:opacity-50"
+            class="rounded-xl border border-border bg-[var(--color-bg)] px-3 py-3 text-sm font-medium text-text transition-colors hover:bg-surface-2 disabled:opacity-50"
           >
             Refresh access
           </button>
@@ -568,7 +649,7 @@ function ActivePlan({
           type="button"
           onClick={onRefresh}
           disabled={busy}
-          class="mt-3 text-[11px] font-medium text-[var(--color-muted)] hover:text-[var(--color-text)] disabled:opacity-50"
+          class="mt-3 text-[11px] font-medium text-muted hover:text-text disabled:opacity-50"
         >
           {state === "checking" ? "Checking…" : "Refresh access"}
         </button>
@@ -582,7 +663,7 @@ function LegalLink({ href, children }: { href: string; children: string }) {
     <button
       type="button"
       onClick={() => void openUrl(href).catch(() => {})}
-      class="underline underline-offset-2 transition-colors hover:text-[var(--color-text)]"
+      class="underline underline-offset-2 transition-colors hover:text-text"
     >
       {children}
     </button>
@@ -598,13 +679,16 @@ function Notice({
   tone?: "neutral" | "accent" | "warning";
   className?: string;
 }) {
-  const color = tone === "accent"
-    ? "border-[var(--color-accent)]/25 bg-[var(--color-accent-soft)] text-[var(--color-muted)]"
-    : tone === "warning"
-      ? "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
-      : "border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-muted)]";
+  const color =
+    tone === "accent"
+      ? "border-(--color-accent)/25 bg-accent-soft text-muted"
+      : tone === "warning"
+        ? "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
+        : "border-border bg-[var(--color-surface)] text-muted";
   return (
-    <p class={`rounded-xl border px-3.5 py-3 text-center text-[11px] leading-5 ${color} ${className}`}>
+    <p
+      class={`rounded-xl border px-3.5 py-3 text-center text-[11px] leading-5 ${color} ${className}`}
+    >
       {children}
     </p>
   );

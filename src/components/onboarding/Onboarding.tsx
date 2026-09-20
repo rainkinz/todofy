@@ -114,7 +114,7 @@ export function Onboarding() {
         <button
           type="button"
           onClick={() => void finish({ skipped: true })}
-          class="absolute right-4 top-4 z-10 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-[var(--color-faint)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+          class="absolute right-4 top-4 z-10 rounded-lg px-2.5 py-1.5 text-[11px] font-medium text-faint transition-colors hover:bg-surface-2 hover:text-text"
         >
           Skip
         </button>
@@ -141,13 +141,13 @@ export function Onboarding() {
           </div>
         </div>
 
-        <div class="relative flex items-center gap-4 border-t border-[var(--color-border)] px-7 py-4 sm:px-10">
+        <div class="relative flex items-center gap-4 border-t border-border px-7 py-4 sm:px-10">
           <button
             type="button"
             onClick={back}
             disabled={step === 0}
             aria-label="Previous"
-            class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[var(--color-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)] disabled:pointer-events-none disabled:opacity-0"
+            class="grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-text disabled:pointer-events-none disabled:opacity-0"
           >
             <ChevronLeftIcon width={17} height={17} />
           </button>
