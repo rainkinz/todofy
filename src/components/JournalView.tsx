@@ -37,7 +37,7 @@ export function JournalView() {
   }, [journal]);
 
   return (
-    <main class="redesign-secondary flex flex-1 flex-col overflow-hidden bg-[var(--color-bg)]">
+    <main class="redesign-secondary flex flex-1 flex-col overflow-hidden bg-bg">
       <header class="app-page-header shrink-0 px-8 pt-8 pb-4">
         <h2 class="text-2xl font-semibold tracking-tight">Journal</h2>
         <p class="mt-0.5 text-sm text-muted">Write and reflect on your days</p>

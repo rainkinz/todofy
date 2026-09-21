@@ -36,7 +36,7 @@ export function CalendarSection() {
       <h3 class="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-faint">
         Calendar
       </h3>
-      <div class="overflow-hidden rounded-xl border border-border bg-[var(--color-surface)]">
+      <div class="overflow-hidden rounded-xl border border-border bg-surface">
         {!session ? (
           <div class="flex items-center gap-3 px-4 py-3.5">
             <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-surface-2 text-muted">
@@ -123,14 +123,14 @@ export function CalendarSection() {
               <button
                 onClick={() => void onConnect()}
                 disabled={busy}
-                class="flex shrink-0 items-center gap-2 rounded-lg border border-border bg-[var(--color-bg)] px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-surface-2 disabled:opacity-50"
+                class="flex shrink-0 items-center gap-2 rounded-lg border border-border bg-bg px-3 py-1.5 text-xs font-medium text-text transition-colors hover:bg-surface-2 disabled:opacity-50"
               >
                 <GoogleIcon width={14} height={14} />
                 {busy ? "Waiting for browser…" : "Connect"}
               </button>
             </div>
             {(error ?? pushError) && (
-              <p class="rounded-lg bg-[var(--color-danger)]/10 px-3 py-2 text-xs text-(--color-danger)">
+              <p class="rounded-lg bg-(--color-danger)/10 px-3 py-2 text-xs text-(--color-danger)">
                 {error ?? pushError}
               </p>
             )}
@@ -181,7 +181,7 @@ function DisconnectModal({
       class="fixed inset-0 z-[100] grid place-items-center bg-black/50 p-4 backdrop-blur-sm"
       onMouseDown={(e) => e.target === e.currentTarget && !busy && onClose()}
     >
-      <div class="relative w-full max-w-sm animate-fade-rise overflow-hidden rounded-2xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] shadow-2xl shadow-black/50">
+      <div class="relative w-full max-w-sm animate-fade-rise overflow-hidden rounded-2xl border border-border-strong bg-elevated shadow-2xl shadow-black/50">
         <button
           onClick={onClose}
           title="Close"
@@ -210,8 +210,8 @@ function DisconnectModal({
             onClick={() => setDeleteRemote((v) => !v)}
             class={`flex w-full items-start gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors ${
               deleteRemote
-                ? "border-[var(--color-danger)]/50 bg-[var(--color-danger)]/5"
-                : "border-border bg-[var(--color-bg)] hover:bg-surface-2"
+                ? "border-(--color-danger)/50 bg-(--color-danger)/5"
+                : "border-border bg-bg hover:bg-surface-2"
             }`}
           >
             <span class="mt-0.5">
@@ -233,7 +233,7 @@ function DisconnectModal({
           {error && (
             <p
               role="alert"
-              class="rounded-lg bg-[var(--color-danger)]/10 px-3 py-2 text-xs text-(--color-danger)"
+              class="rounded-lg bg-(--color-danger)/10 px-3 py-2 text-xs text-(--color-danger)"
             >
               {error}
             </p>
@@ -254,8 +254,8 @@ function DisconnectModal({
               disabled={busy}
               class={`flex-1 rounded-lg px-3 py-2.5 text-sm font-medium text-white transition-colors disabled:opacity-50 ${
                 deleteRemote
-                  ? "bg-[var(--color-danger)] hover:opacity-90"
-                  : "bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)]"
+                  ? "bg-(--color-danger) hover:opacity-90"
+                  : "bg-(--color-accent) hover:bg-accent-hover"
               }`}
             >
               {busy ? "Disconnecting…" : "Disconnect"}
@@ -270,7 +270,7 @@ function DisconnectModal({
 const PUSH_META = {
   idle: { dot: "bg-[var(--color-success)]", label: "Up to date" },
   pushing: { dot: "bg-[var(--color-warning)]", label: "Pushing…" },
-  error: { dot: "bg-[var(--color-danger)]", label: "Push failed" },
+  error: { dot: "bg-(--color-danger)", label: "Push failed" },
 } as const;
 
 function PushStatusRow() {
@@ -314,7 +314,7 @@ function Switch({
       aria-checked={checked}
       onClick={onChange}
       class={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-        checked ? "bg-[var(--color-accent)]" : "bg-surface-2"
+        checked ? "bg-(--color-accent)" : "bg-surface-2"
       }`}
     >
       <span

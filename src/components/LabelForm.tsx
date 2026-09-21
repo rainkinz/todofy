@@ -69,7 +69,7 @@ export function LabelForm({
         e.preventDefault();
         if (name.trim()) onSubmit(name.trim(), color);
       }}
-      class="flex animate-fade-rise flex-col gap-3.5 rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] p-3.5 shadow-lg shadow-black/30"
+      class="flex animate-fade-rise flex-col gap-3.5 rounded-xl border border-border-strong bg-elevated p-3.5 shadow-lg shadow-black/30"
     >
       <input
         autoFocus
@@ -77,7 +77,7 @@ export function LabelForm({
         onInput={(e) => setName(e.currentTarget.value)}
         onKeyDown={(e) => e.key === "Escape" && onCancel()}
         placeholder="Label name"
-        class="rounded-lg border border-border bg-[var(--color-bg)] px-3 py-2 text-sm outline-none transition-colors focus:border-(--color-accent)"
+        class="rounded-lg border border-border bg-bg px-3 py-2 text-sm outline-none transition-colors focus:border-(--color-accent)"
       />
 
       <div class="flex flex-col gap-2">
@@ -113,7 +113,7 @@ export function LabelForm({
           ))}
         </div>
 
-        <div class="flex items-center gap-2 rounded-lg border border-border bg-[var(--color-bg)] px-2.5 py-1.5 transition-colors focus-within:border-(--color-accent)">
+        <div class="flex items-center gap-2 rounded-lg border border-border bg-bg px-2.5 py-1.5 transition-colors focus-within:border-(--color-accent)">
           <span
             class="h-6 w-6 shrink-0 rounded-md shadow-[inset_0_0_0_1px_rgba(0,0,0,0.2)]"
             style={{ background: color }}
@@ -141,7 +141,7 @@ export function LabelForm({
         <button
           type="submit"
           disabled={!name.trim()}
-          class="rounded-lg bg-[var(--color-accent)] px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[var(--color-accent-hover)] hover:shadow-md disabled:opacity-40 disabled:shadow-none"
+          class="rounded-lg bg-(--color-accent) px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-accent-hover hover:shadow-md disabled:opacity-40 disabled:shadow-none"
         >
           Save label
         </button>

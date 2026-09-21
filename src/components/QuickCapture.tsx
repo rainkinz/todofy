@@ -117,7 +117,8 @@ export function QuickCapture() {
 
   useEffect(() => {
     const win = getCurrentWindow();
-    void win.setSize(new LogicalSize(640, busy ? 300 : 210))
+    void win
+      .setSize(new LogicalSize(640, busy ? 300 : 210))
       .then(() => win.center())
       .catch(() => {});
   }, [busy]);
@@ -147,18 +148,29 @@ export function QuickCapture() {
             placeholder="What needs doing?  Try “pay rent Friday 5pm”"
             class="quick-capture-input"
           />
-          <VoiceInputButton kind="task" compactWindow getPanelHost={() => voicePanelRef.current} onBusyChange={(next) => {
-            voiceBusy.current = next;
-            setBusy(next);
-          }} onTranscript={(text) => {
-            const input = inputRef.current;
-            const next = insertTranscript(title, text, input?.selectionStart ?? title.length, input?.selectionEnd ?? title.length);
-            setTitle(next.value);
-            requestAnimationFrame(() => {
-              input?.focus();
-              input?.setSelectionRange(next.caret, next.caret);
-            });
-          }} />
+          <VoiceInputButton
+            kind="task"
+            compactWindow
+            getPanelHost={() => voicePanelRef.current}
+            onBusyChange={(next) => {
+              voiceBusy.current = next;
+              setBusy(next);
+            }}
+            onTranscript={(text) => {
+              const input = inputRef.current;
+              const next = insertTranscript(
+                title,
+                text,
+                input?.selectionStart ?? title.length,
+                input?.selectionEnd ?? title.length,
+              );
+              setTitle(next.value);
+              requestAnimationFrame(() => {
+                input?.focus();
+                input?.setSelectionRange(next.caret, next.caret);
+              });
+            }}
+          />
           <button
             type="submit"
             disabled={!parsed.title.trim() || busy}

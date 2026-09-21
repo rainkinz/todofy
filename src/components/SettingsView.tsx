@@ -399,7 +399,7 @@ export function SettingsView() {
   };
 
   return (
-    <main class="redesign-secondary settings-main flex flex-1 flex-col overflow-hidden bg-[var(--color-bg)]">
+    <main class="redesign-secondary settings-main flex flex-1 flex-col overflow-hidden bg-bg">
       <header class="app-page-header shrink-0 px-8 pt-8 pb-4">
         <h2 class="text-2xl font-semibold tracking-tight">Settings</h2>
         <p class="mt-0.5 text-sm text-muted">Startup, appearance, and about</p>
@@ -924,14 +924,14 @@ function UpdateRow({ version }: { version: string }) {
           {state === "ready" ? (
             <button
               onClick={() => void restart()}
-              class="rounded-lg bg-[var(--color-accent)] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)]"
+              class="rounded-lg bg-(--color-accent) px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-accent-hover"
             >
               Restart now
             </button>
           ) : state === "available" ? (
             <button
               onClick={() => void install()}
-              class="rounded-lg bg-[var(--color-accent)] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)]"
+              class="rounded-lg bg-(--color-accent) px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-accent-hover"
             >
               {canSelfUpdate ? "Download and install" : "Open releases"}
             </button>
@@ -956,7 +956,7 @@ function UpdateRow({ version }: { version: string }) {
       {state === "downloading" && (
         <div class="mt-3 h-1 overflow-hidden rounded-full bg-surface-2">
           <div
-            class="h-full rounded-full bg-[var(--color-accent)] transition-[width] duration-200"
+            class="h-full rounded-full bg-(--color-accent) transition-[width] duration-200"
             style={{ width: total > 0 ? `${percent}%` : "35%" }}
           />
         </div>
@@ -1030,7 +1030,7 @@ function Section({
       <h3 class="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-faint">
         {title}
       </h3>
-      <div class="overflow-hidden rounded-xl border border-border bg-[var(--color-surface)]">
+      <div class="overflow-hidden rounded-xl border border-border bg-surface">
         {children}
       </div>
     </section>
@@ -1080,7 +1080,7 @@ function Switch({
       disabled={disabled}
       onClick={onChange}
       class={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
-        checked ? "bg-[var(--color-accent)]" : "bg-surface-2"
+        checked ? "bg-(--color-accent)" : "bg-surface-2"
       }`}
     >
       <span
@@ -1114,14 +1114,10 @@ function ModeOption({
     >
       <span
         class={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full border-2 transition-colors ${
-          active
-            ? "border-(--color-accent)"
-            : "border-[var(--color-border-strong)]"
+          active ? "border-(--color-accent)" : "border-border-strong"
         }`}
       >
-        {active && (
-          <span class="h-2 w-2 rounded-full bg-[var(--color-accent)]" />
-        )}
+        {active && <span class="h-2 w-2 rounded-full bg-(--color-accent)" />}
       </span>
       <div class="min-w-0">
         <p class="text-sm font-medium text-text">{title}</p>

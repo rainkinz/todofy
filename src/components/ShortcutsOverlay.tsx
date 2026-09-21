@@ -39,7 +39,7 @@ export function ShortcutsOverlay() {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        class="w-full max-w-md overflow-hidden rounded-2xl border border-border bg-[var(--color-surface)] shadow-xl shadow-black/30"
+        class="w-full max-w-md overflow-hidden rounded-2xl border border-border bg-surface shadow-xl shadow-black/30"
       >
         <div class="flex items-center justify-between border-b border-border px-5 py-3.5">
           <h2 class="text-sm font-semibold">Keyboard shortcuts</h2>

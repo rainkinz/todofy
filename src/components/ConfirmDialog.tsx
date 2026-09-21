@@ -30,10 +30,10 @@ export function ConfirmDialog() {
 
   return (
     <div
-      class="fixed inset-0 z-[100] grid place-items-center bg-black/50 p-4 backdrop-blur-sm"
+      class="fixed inset-0 z-100 grid place-items-center bg-black/50 p-4 backdrop-blur-sm"
       onMouseDown={(e) => e.target === e.currentTarget && closeConfirm()}
     >
-      <div class="w-full max-w-sm animate-fade-rise rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] p-5 shadow-2xl shadow-black/50">
+      <div class="w-full max-w-sm animate-fade-rise rounded-xl border border-border-strong bg-elevated p-5 shadow-2xl shadow-black/50">
         <h3 class="text-base font-semibold text-text">{confirm.title}</h3>
         {confirm.message && (
           <p class="mt-1.5 text-sm leading-relaxed text-muted">
@@ -54,8 +54,8 @@ export function ConfirmDialog() {
             autoFocus
             class={`rounded-lg px-3 py-1.5 text-sm font-medium text-white transition-colors disabled:opacity-60 ${
               confirm.danger
-                ? "bg-[var(--color-danger)] hover:brightness-110"
-                : "bg-[var(--color-accent)] hover:bg-[var(--color-accent-hover)]"
+                ? "bg-(--color-danger) hover:brightness-110"
+                : "bg-(--color-accent) hover:bg-accent-hover"
             }`}
           >
             {confirm.confirmLabel ?? "Confirm"}

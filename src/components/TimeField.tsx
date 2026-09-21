@@ -155,10 +155,10 @@ export function TimeField({
 
   return (
     <div
-      class={`flex flex-1 items-center justify-center gap-1 rounded-lg border bg-[var(--color-bg)] px-3 py-2 focus-within:ring-1 ${
+      class={`flex flex-1 items-center justify-center gap-1 rounded-lg border bg-bg px-3 py-2 focus-within:ring-1 ${
         invalid
-          ? "border-[var(--color-danger)] ring-1 ring-[var(--color-danger)] focus-within:ring-[var(--color-danger)]"
-          : "border-border focus-within:ring-[var(--color-accent)]"
+          ? "border-(--color-danger) ring-1 ring-(--color-danger) focus-within:ring-(--color-danger)"
+          : "border-border focus-within:ring-(--color-accent)"
       }`}
     >
       <input
@@ -199,7 +199,7 @@ export function TimeField({
               onClick={() => setMeridiem(afternoon)}
               class={`rounded px-1.5 py-0.5 text-[10px] font-medium transition-colors ${
                 afternoon === pm
-                  ? "bg-[var(--color-accent)] text-white"
+                  ? "bg-(--color-accent) text-white"
                   : "text-muted hover:text-text"
               }`}
             >

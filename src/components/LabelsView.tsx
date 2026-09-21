@@ -23,7 +23,7 @@ export function LabelsView() {
   );
 
   return (
-    <main class="redesign-secondary labels-main flex flex-1 flex-col overflow-hidden bg-[var(--color-bg)]">
+    <main class="redesign-secondary labels-main flex flex-1 flex-col overflow-hidden bg-bg">
       <header class="app-page-header shrink-0 px-8 pt-8 pb-4">
         <h2 class="text-2xl font-semibold tracking-tight">Labels</h2>
         <p class="mt-0.5 text-sm text-muted">
@@ -42,7 +42,7 @@ export function LabelsView() {
             value={query}
             onInput={(e) => setQuery(e.currentTarget.value)}
             placeholder="Search labels…"
-            class="w-full rounded-md border border-border bg-[var(--color-surface)] py-2 pl-8 pr-3 text-sm outline-none focus:border-(--color-accent)"
+            class="w-full rounded-md border border-border bg-surface py-2 pl-8 pr-3 text-sm outline-none focus:border-(--color-accent)"
           />
         </div>
         <button
@@ -50,7 +50,7 @@ export function LabelsView() {
             setEditingId(null);
             setAdding((v) => !v);
           }}
-          class="flex shrink-0 items-center gap-1.5 rounded-md bg-[var(--color-accent)] px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+          class="flex shrink-0 items-center gap-1.5 rounded-md bg-(--color-accent) px-3 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
         >
           <PlusIcon width={15} height={15} />
           New label
@@ -99,7 +99,7 @@ export function LabelsView() {
               return (
                 <div
                   key={l.id}
-                  class="group flex items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm transition-colors hover:border-border hover:bg-[var(--color-surface)]"
+                  class="group flex items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm transition-colors hover:border-border hover:bg-surface"
                 >
                   <button
                     onClick={() => setView(id)}

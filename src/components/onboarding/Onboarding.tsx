@@ -101,15 +101,15 @@ export function Onboarding() {
 
   return (
     <div
-      class={`fixed inset-0 z-[120] grid place-items-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm ${
+      class={`fixed inset-0 z-120 grid place-items-center overflow-y-auto bg-black/70 p-4 backdrop-blur-sm ${
         leaving ? "onb-curtain-leaving" : "onb-curtain"
       }`}
       role="dialog"
       aria-modal="true"
       aria-label="Welcome to todofy"
     >
-      <div class="onb-card relative my-auto w-full max-w-[620px] overflow-hidden rounded-[24px] border border-[var(--color-border-strong)] bg-[var(--color-elevated)] shadow-2xl shadow-black/60">
-        <span class="pointer-events-none absolute inset-x-20 -top-32 h-56 rounded-full bg-[var(--color-accent)] opacity-[0.1] blur-3xl" />
+      <div class="onb-card relative my-auto w-full max-w-155` overflow-hidden rounded-3xl border border-border-strong bg-elevated shadow-2xl shadow-black/60">
+        <span class="pointer-events-none absolute inset-x-20 -top-32 h-56 rounded-full bg-(--color-accent) opacity-[0.1] blur-3xl" />
 
         <button
           type="button"
@@ -122,7 +122,7 @@ export function Onboarding() {
         <div class="relative px-7 pb-5 pt-9 sm:px-10">
           {/* A floor under the stage keeps the card from resizing much as
               slides of different lengths come and go. */}
-          <div class="relative flex min-h-[400px] items-center">
+          <div class="relative flex min-h-100 items-center">
             <div
               key={step}
               class={`w-full ${dir === 1 ? "onb-enter-right" : "onb-enter-left"}`}
@@ -162,10 +162,10 @@ export function Onboarding() {
                 aria-current={index === step}
                 class={`h-1.5 rounded-full transition-all duration-300 ${
                   index === step
-                    ? "w-6 bg-[var(--color-accent)]"
+                    ? "w-6 bg-(--color-accent)"
                     : index < step
-                      ? "w-1.5 bg-[var(--color-border-strong)]"
-                      : "w-1.5 bg-[var(--color-border)]"
+                      ? "w-1.5 bg-border-strong"
+                      : "w-1.5 bg-border"
                 }`}
               />
             ))}
@@ -174,7 +174,7 @@ export function Onboarding() {
           <button
             type="button"
             onClick={next}
-            class="shrink-0 rounded-xl bg-[var(--color-accent)] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-black/15 transition-[background-color,transform] hover:bg-[var(--color-accent-hover)] active:translate-y-px"
+            class="shrink-0 rounded-xl bg-(--color-accent) px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-black/15 transition-[background-color,transform] hover:bg-accent-hover active:translate-y-px"
           >
             {NEXT_LABEL[step]}
           </button>

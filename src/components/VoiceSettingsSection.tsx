@@ -114,7 +114,7 @@ export function VoiceSettingsSection() {
   );
 
   return (
-    <section class="mb-6">
+    <section id="voice-settings" class="mb-6 scroll-mt-2">
       <h3 class="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-faint">
         Voice
       </h3>

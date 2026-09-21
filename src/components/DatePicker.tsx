@@ -216,7 +216,7 @@ export function DatePicker({
               // Shortcuts, calendar, time and repeat can outgrow a short window.
               maxHeight: `calc(100vh - ${MARGIN * 2}px)`,
             }}
-            class="z-[150] animate-fade-rise overflow-y-auto rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] p-2.5 shadow-2xl shadow-black/50"
+            class="z-150 animate-fade-rise overflow-y-auto rounded-xl border border-border-strong bg-elevated p-2.5 shadow-2xl shadow-black/50"
           >
             {/* Quick shortcuts */}
             <div class="mb-2 flex flex-col gap-0.5">
@@ -362,7 +362,7 @@ export function DatePicker({
                       onClick={() => setTime(t)}
                       class={`rounded-md px-2 py-1 text-xs transition-colors ${
                         time === t
-                          ? "bg-[var(--color-accent)] text-white"
+                          ? "bg-(--color-accent) text-white"
                           : "bg-surface-2 text-muted hover:text-text"
                       }`}
                     >
@@ -382,9 +382,7 @@ export function DatePicker({
                   reminderAt &&
                   new Date(reminderAt).getTime() < Date.now() && (
                     <div class="mt-2 flex flex-wrap items-center gap-1.5 px-0.5">
-                      <span class="text-xs text-[var(--color-warning)]">
-                        Snooze
-                      </span>
+                      <span class="text-xs text-(--color-warning)">Snooze</span>
                       {[
                         { label: "10m", min: 10 },
                         { label: "1h", min: 60 },
@@ -421,7 +419,7 @@ export function DatePicker({
                       onClick={() => onRepeatChange(opt.value)}
                       class={`rounded-md px-2 py-1 text-xs transition-colors ${
                         (repeat ?? null) === opt.value
-                          ? "bg-[var(--color-accent)] text-white"
+                          ? "bg-(--color-accent) text-white"
                           : "bg-surface-2 text-muted hover:text-text"
                       }`}
                     >
@@ -450,7 +448,7 @@ export function DatePicker({
                   <button
                     type="button"
                     onClick={() => setOpen(false)}
-                    class="ml-auto rounded-md bg-[var(--color-accent)] px-2.5 py-1 text-xs font-medium text-white"
+                    class="ml-auto rounded-md bg-(--color-accent) px-2.5 py-1 text-xs font-medium text-white"
                   >
                     Done
                   </button>
@@ -467,7 +465,7 @@ export function DatePicker({
 /** Shared cell styling for day / month / year buttons. */
 function cell(selected: boolean, isToday: boolean): string {
   if (selected)
-    return "grid place-items-center rounded-lg bg-[var(--color-accent)] text-xs font-medium text-white";
+    return "grid place-items-center rounded-lg bg-(--color-accent) text-xs font-medium text-white";
   if (isToday)
     return "grid place-items-center rounded-lg text-xs text-(--color-accent) ring-1 ring-inset ring-[var(--color-accent)] hover:bg-surface-2";
   return "grid place-items-center rounded-lg text-xs text-text transition-colors hover:bg-surface-2";

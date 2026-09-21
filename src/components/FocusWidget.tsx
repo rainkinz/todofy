@@ -90,7 +90,7 @@ export function FocusWidget() {
   return (
     <div
       ref={rootRef}
-      class="fixed bottom-4 left-4 z-50 w-72 animate-fade-rise overflow-hidden rounded-2xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] shadow-2xl shadow-black/50"
+      class="fixed bottom-4 left-4 z-50 w-72 animate-fade-rise overflow-hidden rounded-2xl border border-border-strong bg-elevated shadow-2xl shadow-black/50"
     >
       {/* Header */}
       <div class="flex items-center justify-between border-b border-border px-4 py-2.5">
@@ -122,7 +122,7 @@ export function FocusWidget() {
             class={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
               p.phase === "focus"
                 ? "bg-accent-soft text-(--color-accent)"
-                : "bg-surface-2 text-[var(--color-success)]"
+                : "bg-surface-2 text-success"
             }`}
           >
             {PHASE_LABEL[p.phase]}
@@ -130,7 +130,7 @@ export function FocusWidget() {
 
           <span
             class={`font-mono text-4xl font-semibold tabular-nums ${
-              overtime ? "text-[var(--color-warning)]" : "text-text"
+              overtime ? "text-(--color-warning)" : "text-text"
             }`}
           >
             {clock(remaining)}
@@ -154,7 +154,7 @@ export function FocusWidget() {
             <button
               onClick={p.running ? pomodoroPause : pomodoroStart}
               title={p.running ? "Pause" : "Start"}
-              class="grid h-11 w-11 place-items-center rounded-full bg-[var(--color-accent)] text-white transition-colors hover:bg-[var(--color-accent-hover)]"
+              class="grid h-11 w-11 place-items-center rounded-full bg-(--color-accent) text-white transition-colors hover:bg-accent-hover"
             >
               {p.running ? (
                 <PauseIcon width={20} height={20} />
@@ -175,17 +175,15 @@ export function FocusWidget() {
 
       {/* Active task stopwatch */}
       {activeTimer && (
-        <div class="flex items-center gap-3 border-t border-border bg-[var(--color-surface)] px-4 py-3">
+        <div class="flex items-center gap-3 border-t border-border bg-surface px-4 py-3">
           <span class="relative flex h-2.5 w-2.5 shrink-0">
             {/* The pulse means "still counting", so a paused dot holds still. */}
             {!taskPaused && (
-              <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--color-danger)] opacity-70" />
+              <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-(--color-danger) opacity-70" />
             )}
             <span
               class={`relative inline-flex h-2.5 w-2.5 rounded-full ${
-                taskPaused
-                  ? "bg-[var(--color-muted)]"
-                  : "bg-[var(--color-danger)]"
+                taskPaused ? "bg-muted" : "bg-(--color-danger)"
               }`}
             />
           </span>

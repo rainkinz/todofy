@@ -63,13 +63,13 @@ export function UpdateDialog() {
 
   return (
     <div
-      class="fixed inset-0 z-[110] grid place-items-center bg-black/50 p-4 backdrop-blur-sm"
+      class="fixed inset-0 z-110 grid place-items-center bg-black/50 p-4 backdrop-blur-sm"
       onMouseDown={(event) => event.target === event.currentTarget && close()}
       role="dialog"
       aria-modal="true"
       aria-label={asking ? "Update available" : "Update installed"}
     >
-      <div class="w-full max-w-md animate-fade-rise rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] p-5 shadow-2xl shadow-black/50">
+      <div class="w-full max-w-md animate-fade-rise rounded-xl border border-border-strong bg-elevated p-5 shadow-2xl shadow-black/50">
         <div class="flex items-start gap-3">
           <span class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-accent-soft text-(--color-accent)">
             {asking ? (
@@ -93,7 +93,7 @@ export function UpdateDialog() {
         </div>
 
         {asking && notes && (
-          <div class="mt-4 max-h-40 overflow-y-auto rounded-lg border border-border bg-[var(--color-surface)] p-3">
+          <div class="mt-4 max-h-40 overflow-y-auto rounded-lg border border-border bg-surface p-3">
             <p class="text-xs font-semibold text-faint uppercase">What's new</p>
             <p class="mt-1.5 text-xs leading-relaxed whitespace-pre-line text-muted">
               {notes}
@@ -111,7 +111,7 @@ export function UpdateDialog() {
           <button
             onClick={() => void (asking ? acceptPrompt() : restart())}
             autoFocus
-            class="rounded-lg bg-[var(--color-accent)] px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)]"
+            class="rounded-lg bg-(--color-accent) px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
           >
             {asking ? "Update now" : "Restart now"}
           </button>

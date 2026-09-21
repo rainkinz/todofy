@@ -125,7 +125,7 @@ export function EstimatePicker({
               left: `${pos.left}px`,
               width: `${POPOVER_W}px`,
             }}
-            class="z-[150] animate-fade-rise rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] p-2.5 shadow-2xl shadow-black/50"
+            class="z-150 animate-fade-rise rounded-xl border border-border-strong bg-elevated p-2.5 shadow-2xl shadow-black/50"
           >
             <div class="grid grid-cols-3 gap-1">
               {PRESETS.map((minutes) => (
@@ -135,7 +135,7 @@ export function EstimatePicker({
                   onClick={() => pick(minutes)}
                   class={`rounded-lg px-2 py-1.5 text-xs transition-colors ${
                     value === minutes
-                      ? "bg-[var(--color-accent)] text-white"
+                      ? "bg-(--color-accent) text-white"
                       : "bg-surface-2 text-muted hover:text-text"
                   }`}
                 >
@@ -159,7 +159,7 @@ export function EstimatePicker({
                 onBlur={commitDraft}
                 placeholder="e.g. 1h 30m"
                 aria-label="Custom estimate"
-                class="w-full rounded-md bg-[var(--color-bg)] px-2 py-1 text-xs text-text outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
+                class="w-full rounded-md bg-bg px-2 py-1 text-xs text-text outline-none focus:ring-1 focus:ring-(--color-accent)"
               />
             </div>
 

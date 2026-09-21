@@ -107,7 +107,7 @@ export function ProPaywall() {
 
   return (
     <div
-      class="fixed inset-0 z-[110] grid place-items-center overflow-y-auto bg-black/65 p-4 backdrop-blur-sm"
+      class="fixed inset-0 z-110 grid place-items-center overflow-y-auto bg-black/65 p-4 backdrop-blur-sm"
       onMouseDown={(event) =>
         event.target === event.currentTarget && !busy && closeGate()
       }
@@ -116,9 +116,9 @@ export function ProPaywall() {
         role="dialog"
         aria-modal="true"
         aria-labelledby="pro-dialog-title"
-        class="relative my-auto w-full max-w-[590px] animate-fade-rise overflow-hidden rounded-[22px] border border-[var(--color-border-strong)] bg-[var(--color-elevated)] shadow-2xl shadow-black/55"
+        class="relative my-auto w-full max-w-147.5 animate-fade-rise overflow-hidden rounded-[22px] border border-border-strong bg-elevated shadow-2xl shadow-black/55"
       >
-        <div class="pointer-events-none absolute inset-x-16 -top-28 h-52 rounded-full bg-[var(--color-accent)] opacity-[0.09] blur-3xl" />
+        <div class="pointer-events-none absolute inset-x-16 -top-28 h-52 rounded-full bg-(--color-accent) opacity-[0.09] blur-3xl" />
 
         <button
           type="button"
@@ -182,7 +182,7 @@ export function ProPaywall() {
               <div
                 role="group"
                 aria-label="Billing period"
-                class="mx-auto grid max-w-[330px] grid-cols-2 rounded-xl border border-border bg-[var(--color-bg)] p-1"
+                class="mx-auto grid max-w-82.5 grid-cols-2 rounded-xl border border-border bg-bg p-1"
               >
                 <PlanToggle
                   active={selectedPlan === "monthly"}
@@ -208,7 +208,7 @@ export function ProPaywall() {
                 catalogPlan={selectedCatalogPlan}
               />
 
-              <div class="mx-auto mt-5 max-w-[390px] space-y-2.5">
+              <div class="mx-auto mt-5 max-w-97.5 space-y-2.5">
                 {FEATURES.map((feature) => (
                   <p
                     key={feature}
@@ -226,7 +226,7 @@ export function ProPaywall() {
                 type="button"
                 disabled={busy || checkoutUnavailable}
                 onClick={() => void buy()}
-                class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-accent)] px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-black/15 transition-[background-color,transform] hover:bg-[var(--color-accent-hover)] active:translate-y-px disabled:opacity-55"
+                class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-(--color-accent) px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-black/15 transition-[background-color,transform] hover:bg-accent-hover active:translate-y-px disabled:opacity-55"
               >
                 <LemonSqueezyIcon width={17} height={17} />
                 {busy
@@ -249,7 +249,7 @@ export function ProPaywall() {
               {catalogError && (
                 <div
                   role="alert"
-                  class="mt-4 flex items-center justify-between gap-3 rounded-lg bg-[var(--color-danger)]/10 px-3 py-2.5 text-xs text-(--color-danger)"
+                  class="mt-4 flex items-center justify-between gap-3 rounded-lg bg-(--color-danger)/10 px-3 py-2.5 text-xs text-(--color-danger)"
                 >
                   <span>{catalogError}</span>
                   <button
@@ -268,7 +268,7 @@ export function ProPaywall() {
                 </Notice>
               )}
 
-              <div class="my-6 h-px bg-[var(--color-border)]" />
+              <div class="my-6 h-px bg-border" />
 
               <button
                 type="button"
@@ -315,7 +315,7 @@ export function ProPaywall() {
                   >
                     Manage previous plan
                   </button>
-                  <span class="h-3 w-px bg-[var(--color-border)]" />
+                  <span class="h-3 w-px bg-border" />
                   <button
                     type="button"
                     disabled={state === "checking" || busy}
@@ -332,7 +332,7 @@ export function ProPaywall() {
           {error && (
             <p
               role="alert"
-              class="mt-4 rounded-lg bg-[var(--color-danger)]/10 px-3 py-2.5 text-xs text-(--color-danger)"
+              class="mt-4 rounded-lg bg-(--color-danger)/10 px-3 py-2.5 text-xs text-(--color-danger)"
             >
               {error}
             </p>
@@ -461,7 +461,7 @@ function AccessNotice({
 
 function SignedOutActivation({ onSignIn }: { onSignIn: () => void }) {
   return (
-    <div class="rounded-xl border border-border bg-[var(--color-surface)] p-4 text-center">
+    <div class="rounded-xl border border-border bg-surface p-4 text-center">
       <p class="text-xs leading-5 text-muted">
         Sign in or create an account first. Your license will be linked to that
         account on all your devices.
@@ -469,7 +469,7 @@ function SignedOutActivation({ onSignIn }: { onSignIn: () => void }) {
       <button
         type="button"
         onClick={onSignIn}
-        class="mt-3 w-full rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-3 py-2.5 text-sm font-medium text-text transition-colors hover:bg-surface-2"
+        class="mt-3 w-full rounded-lg border border-border-strong bg-bg px-3 py-2.5 text-sm font-medium text-text transition-colors hover:bg-surface-2"
       >
         Sign in or create account
       </button>
@@ -497,7 +497,7 @@ function LicenseForm({
   return (
     <form
       onSubmit={onSubmit}
-      class="rounded-xl border border-border bg-[var(--color-surface)] p-4"
+      class="rounded-xl border border-border bg-surface p-4"
     >
       <p class="text-center text-[11px] leading-5 text-muted">
         Activate for{" "}
@@ -514,7 +514,7 @@ function LicenseForm({
             placeholder="Paste your license key"
             autocomplete="off"
             spellcheck={false}
-            class="w-full rounded-lg border border-border bg-[var(--color-bg)] py-2.5 pl-3 pr-10 font-mono text-xs text-text outline-none transition-colors placeholder:font-sans placeholder:text-faint focus:border-(--color-accent)"
+            class="w-full rounded-lg border border-border bg-bg py-2.5 pl-3 pr-10 font-mono text-xs text-text outline-none transition-colors placeholder:font-sans placeholder:text-faint focus:border-(--color-accent)"
           />
           <button
             type="button"
@@ -535,7 +535,7 @@ function LicenseForm({
       <button
         type="submit"
         disabled={busy || license.trim().length < 10}
-        class="mt-2.5 w-full rounded-lg bg-[var(--color-accent)] px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
+        class="mt-2.5 w-full rounded-lg bg-(--color-accent) px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
       >
         {busy ? "Verifying license…" : "Activate Todofy Pro"}
       </button>
@@ -590,10 +590,10 @@ function ActivePlan({
       <span
         class={`mx-auto grid h-12 w-12 place-items-center rounded-full ${
           grace
-            ? "bg-[var(--color-warning)]/12 text-[var(--color-warning)]"
+            ? "bg-(--color-warning)/12 text-(--color-warning)"
             : cancelled
               ? "bg-accent-soft text-(--color-accent)"
-              : "bg-[var(--color-success)]/12 text-[var(--color-success)]"
+              : "bg-success/12 text-success"
         }`}
       >
         <CheckIcon width={23} height={23} stroke-width={2.5} />
@@ -615,7 +615,7 @@ function ActivePlan({
           type="button"
           onClick={onSync}
           disabled={syncBusy}
-          class="rounded-xl bg-[var(--color-accent)] px-3 py-3 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
+          class="rounded-xl bg-(--color-accent) px-3 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
         >
           {syncBusy ? "Syncing…" : "Sync now"}
         </button>
@@ -624,7 +624,7 @@ function ActivePlan({
             type="button"
             onClick={onManage}
             disabled={busy}
-            class="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-[var(--color-bg)] px-3 py-3 text-sm font-medium text-text transition-colors hover:bg-surface-2 disabled:opacity-50"
+            class="flex items-center justify-center gap-1.5 rounded-xl border border-border bg-bg px-3 py-3 text-sm font-medium text-text transition-colors hover:bg-surface-2 disabled:opacity-50"
           >
             {grace
               ? "Fix payment"
@@ -638,7 +638,7 @@ function ActivePlan({
             type="button"
             onClick={onRefresh}
             disabled={busy}
-            class="rounded-xl border border-border bg-[var(--color-bg)] px-3 py-3 text-sm font-medium text-text transition-colors hover:bg-surface-2 disabled:opacity-50"
+            class="rounded-xl border border-border bg-bg px-3 py-3 text-sm font-medium text-text transition-colors hover:bg-surface-2 disabled:opacity-50"
           >
             Refresh access
           </button>
@@ -683,8 +683,8 @@ function Notice({
     tone === "accent"
       ? "border-(--color-accent)/25 bg-accent-soft text-muted"
       : tone === "warning"
-        ? "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 text-[var(--color-warning)]"
-        : "border-border bg-[var(--color-surface)] text-muted";
+        ? "border-[var(--color-warning)]/30 bg-[var(--color-warning)]/10 text-(--color-warning)"
+        : "border-border bg-surface text-muted";
   return (
     <p
       class={`rounded-xl border px-3.5 py-3 text-center text-[11px] leading-5 ${color} ${className}`}

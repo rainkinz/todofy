@@ -51,7 +51,7 @@ export function PriorityPicker({
 
       {open && (
         <div
-          class={`absolute right-0 z-50 w-40 animate-fade-rise rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-elevated)] p-1 shadow-xl shadow-black/40 ${placement === "top" ? "bottom-full mb-2" : "top-full mt-1"}`}
+          class={`absolute right-0 z-50 w-40 animate-fade-rise rounded-lg border border-border-strong bg-elevated p-1 shadow-xl shadow-black/40 ${placement === "top" ? "bottom-full mb-2" : "top-full mt-1"}`}
         >
           {PRIORITIES.map((p) => (
             <button

@@ -159,7 +159,7 @@ export function JournalEditor({
             type="button"
             onClick={() => void submit()}
             disabled={saving || voiceBusy || (!body.trim() && !title.trim())}
-            class="rounded-md bg-[var(--color-accent)] px-3.5 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+            class="rounded-md bg-(--color-accent) px-3.5 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
           >
             {submitLabel}
           </button>

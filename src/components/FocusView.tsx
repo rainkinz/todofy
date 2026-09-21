@@ -49,7 +49,7 @@ export function FocusView() {
   const overtime = remaining < 0;
 
   return (
-    <main class="redesign-secondary focus-main flex flex-1 flex-col overflow-hidden bg-[var(--color-bg)]">
+    <main class="redesign-secondary focus-main flex flex-1 flex-col overflow-hidden bg-bg">
       <header class="app-page-header shrink-0 px-8 pt-8 pb-4">
         <h2 class="text-2xl font-semibold tracking-tight">Focus</h2>
         <p class="mt-0.5 text-sm text-muted">
@@ -59,13 +59,13 @@ export function FocusView() {
 
       <div class="secondary-scroll focus-content mx-auto w-full max-w-2xl flex-1 overflow-y-auto px-8 pt-2 pb-8">
         {p && (
-          <section class="focus-timer-panel mb-6 flex flex-col items-center gap-4 rounded-2xl border border-border bg-[var(--color-surface)] px-6 py-8">
+          <section class="focus-timer-panel mb-6 flex flex-col items-center gap-4 rounded-2xl border border-border bg-surface px-6 py-8">
             <div class="focus-panel-topline">
               <span
                 class={`focus-phase ${
                   p.phase === "focus"
                     ? "bg-accent-soft text-(--color-accent)"
-                    : "bg-surface-2 text-[var(--color-success)]"
+                    : "bg-surface-2 text-success"
                 }`}
               >
                 <TimerIcon width={14} height={14} />
@@ -78,7 +78,7 @@ export function FocusView() {
 
             <span
               class={`focus-clock ${
-                overtime ? "text-[var(--color-warning)]" : "text-text"
+                overtime ? "text-(--color-warning)" : "text-text"
               }`}
             >
               {clock(remaining)}
@@ -98,7 +98,7 @@ export function FocusView() {
               </button>
               <button
                 onClick={p.running ? pomodoroPause : pomodoroStart}
-                class="grid h-14 w-14 place-items-center rounded-full bg-[var(--color-accent)] text-white transition-colors hover:bg-[var(--color-accent-hover)]"
+                class="grid h-14 w-14 place-items-center rounded-full bg-(--color-accent) text-white transition-colors hover:bg-accent-hover"
                 title={p.running ? "Pause" : "Start"}
               >
                 {p.running ? (
@@ -217,11 +217,11 @@ function History({ sessions }: { sessions: SessionLog[] }) {
       </div>
 
       {sessions.length === 0 ? (
-        <div class="rounded-xl border border-border bg-[var(--color-surface)] px-4 py-8 text-center text-sm text-muted">
+        <div class="rounded-xl border border-border bg-surface px-4 py-8 text-center text-sm text-muted">
           No focus sessions yet. Press play on a task to start tracking.
         </div>
       ) : (
-        <div class="overflow-hidden rounded-xl border border-border bg-[var(--color-surface)]">
+        <div class="overflow-hidden rounded-xl border border-border bg-surface">
           {groups.map((g) => (
             <div key={g.day}>
               <div class="flex items-center justify-between border-b border-border bg-surface-2 px-4 py-1.5">
@@ -263,7 +263,7 @@ function History({ sessions }: { sessions: SessionLog[] }) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div class="rounded-xl border border-border bg-[var(--color-surface)] px-3 py-3 text-center">
+    <div class="rounded-xl border border-border bg-surface px-3 py-3 text-center">
       <p class="text-lg font-semibold tabular-nums text-text">{value}</p>
       <p class="mt-0.5 text-[11px] uppercase tracking-wider text-faint">
         {label}
@@ -303,7 +303,7 @@ function NumberField({
         onInput={(e) => setText(e.currentTarget.value)}
         onBlur={commit}
         onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-        class="w-full rounded-lg border border-border bg-[var(--color-bg)] px-2.5 py-1.5 text-sm outline-none transition-colors focus:border-(--color-accent)"
+        class="w-full rounded-lg border border-border bg-bg px-2.5 py-1.5 text-sm outline-none transition-colors focus:border-(--color-accent)"
       />
     </label>
   );

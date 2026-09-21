@@ -17,7 +17,7 @@ export function AccountSection() {
         <h3 class="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-faint">
           Account
         </h3>
-        <div class="overflow-hidden rounded-xl border border-border bg-[var(--color-surface)]">
+        <div class="overflow-hidden rounded-xl border border-border bg-surface">
           <div class="px-4 py-3.5 text-sm text-muted">
             Account sync isn't configured in this build.
           </div>
@@ -31,7 +31,7 @@ export function AccountSection() {
       <h3 class="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-faint">
         Account
       </h3>
-      <div class="overflow-hidden rounded-xl border border-border bg-[var(--color-surface)]">
+      <div class="overflow-hidden rounded-xl border border-border bg-surface">
         {!ready ? (
           <div class="px-4 py-3.5 text-sm text-muted">Loading…</div>
         ) : session ? (
@@ -82,7 +82,7 @@ function SignInRow({
         <button
           type="button"
           onClick={onSignIn}
-          class="rounded-lg bg-[var(--color-accent)] px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)]"
+          class="rounded-lg bg-(--color-accent) px-3.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-accent-hover"
         >
           Sign in
         </button>
@@ -141,7 +141,7 @@ function SignedInRow({
         <button
           type="button"
           onClick={() => setDeleteOpen(true)}
-          class="shrink-0 rounded-lg border border-[var(--color-danger)]/40 px-3 py-1.5 text-xs font-medium text-(--color-danger) transition-colors hover:bg-[var(--color-danger)]/10"
+          class="shrink-0 rounded-lg border border-(--color-danger)/40 px-3 py-1.5 text-xs font-medium text-(--color-danger) transition-colors hover:bg-(--color-danger)/10"
         >
           Delete account
         </button>
@@ -214,7 +214,7 @@ const STATUS_META: Record<SyncStatus, { dot: string; label: string }> = {
   idle: { dot: "bg-[var(--color-success)]", label: "Synced" },
   syncing: { dot: "bg-[var(--color-warning)]", label: "Syncing…" },
   offline: { dot: "bg-[var(--color-faint)]", label: "Offline — will retry" },
-  error: { dot: "bg-[var(--color-danger)]", label: "Sync failed" },
+  error: { dot: "bg-(--color-danger)", label: "Sync failed" },
   paused: { dot: "bg-[var(--color-faint)]", label: "Cloud Sync paused" },
 };
 
@@ -236,7 +236,7 @@ function SyncStatusRow() {
           : "";
 
   return (
-    <div class="flex items-center gap-3 border-t border-border bg-[var(--color-surface)] px-4 py-3">
+    <div class="flex items-center gap-3 border-t border-border bg-surface px-4 py-3">
       <span class={`h-2 w-2 shrink-0 rounded-full ${meta.dot}`} />
       <div class="min-w-0 flex-1">
         <p class="text-xs font-medium text-text">{meta.label}</p>
@@ -301,7 +301,7 @@ function DeleteAccountModal({
 
   return (
     <div
-      class="fixed inset-0 z-[130] grid place-items-center bg-black/50 p-4 backdrop-blur-sm"
+      class="fixed inset-0 z-130 grid place-items-center bg-black/50 p-4 backdrop-blur-sm"
       onMouseDown={(event) =>
         event.target === event.currentTarget && !busy && onClose()
       }
@@ -310,10 +310,10 @@ function DeleteAccountModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="delete-account-title"
-        class="relative w-full max-w-sm animate-fade-rise overflow-hidden rounded-2xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] shadow-2xl shadow-black/50"
+        class="relative w-full max-w-sm animate-fade-rise overflow-hidden rounded-2xl border border-border-strong bg-elevated shadow-2xl shadow-black/50"
       >
         <div class="flex flex-col items-center gap-2 px-6 pt-8 pb-2 text-center">
-          <span class="grid h-12 w-12 place-items-center rounded-2xl bg-[var(--color-danger)]/10 text-(--color-danger)">
+          <span class="grid h-12 w-12 place-items-center rounded-2xl bg-(--color-danger)/10 text-(--color-danger)">
             <TrashIcon width={24} height={24} />
           </span>
           <h3 id="delete-account-title" class="text-lg font-semibold text-text">
@@ -334,8 +334,8 @@ function DeleteAccountModal({
             onClick={() => setWipeLocal((value) => !value)}
             class={`flex w-full items-start gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors ${
               wipeLocal
-                ? "border-[var(--color-danger)]/50 bg-[var(--color-danger)]/5"
-                : "border-border bg-[var(--color-bg)] hover:bg-surface-2"
+                ? "border-(--color-danger)/50 bg-(--color-danger)/5"
+                : "border-border bg-bg hover:bg-surface-2"
             }`}
           >
             <span class="mt-0.5">
@@ -366,14 +366,14 @@ function DeleteAccountModal({
               value={confirm}
               placeholder="DELETE"
               onInput={(event) => setConfirm(event.currentTarget.value)}
-              class="w-full rounded-lg border border-border bg-[var(--color-bg)] px-3 py-2 text-sm outline-none transition-colors focus:border-[var(--color-danger)]"
+              class="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm outline-none transition-colors focus:border-(--color-danger)"
             />
           </label>
 
           {error && (
             <p
               role="alert"
-              class="rounded-lg bg-[var(--color-danger)]/10 px-3 py-2 text-xs text-(--color-danger)"
+              class="rounded-lg bg-(--color-danger)/10 px-3 py-2 text-xs text-(--color-danger)"
             >
               {error}
             </p>
@@ -392,7 +392,7 @@ function DeleteAccountModal({
               type="button"
               onClick={() => void run()}
               disabled={!canDelete || busy}
-              class="flex-1 rounded-lg bg-[var(--color-danger)] px-3 py-2.5 text-sm font-medium text-white transition-colors hover:opacity-90 disabled:opacity-50"
+              class="flex-1 rounded-lg bg-(--color-danger) px-3 py-2.5 text-sm font-medium text-white transition-colors hover:opacity-90 disabled:opacity-50"
             >
               {busy ? "Cancelling and deleting…" : "Delete account"}
             </button>

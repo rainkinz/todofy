@@ -94,10 +94,10 @@ export function EventEditor({
 
   return (
     <div
-      class="fixed inset-0 z-[100] grid place-items-center bg-black/50 p-4 backdrop-blur-sm"
+      class="fixed inset-0 z-100 grid place-items-center bg-black/50 p-4 backdrop-blur-sm"
       onMouseDown={(e) => e.target === e.currentTarget && !busy && onClose()}
     >
-      <div class="relative w-full max-w-sm animate-fade-rise overflow-hidden rounded-2xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] shadow-2xl shadow-black/50">
+      <div class="relative w-full max-w-sm animate-fade-rise overflow-hidden rounded-2xl border border-border-strong bg-elevated shadow-2xl shadow-black/50">
         <button
           onClick={onClose}
           title="Close"
@@ -123,11 +123,11 @@ export function EventEditor({
             placeholder="Event title"
             autoFocus
             onKeyDown={(e) => e.key === "Enter" && void save()}
-            class="w-full rounded-lg border border-border bg-[var(--color-bg)] px-3 py-2 text-sm text-text outline-none focus:ring-1 focus:ring-[var(--color-accent)] disabled:opacity-70"
+            class="w-full rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text outline-none focus:ring-1 focus:ring-(--color-accent) disabled:opacity-70"
           />
 
           <div class="flex items-center justify-between">
-            <div class="[&>*]:!text-sm">
+            <div class="*:text-sm!">
               <DatePicker
                 value={date}
                 onChange={(d) => d && setDate(d)}
@@ -169,7 +169,7 @@ export function EventEditor({
             onInput={(e) => setDescription(e.currentTarget.value)}
             placeholder="Notes (optional)"
             rows={3}
-            class="w-full resize-none rounded-lg border border-border bg-[var(--color-bg)] px-3 py-2 text-sm text-text outline-none focus:ring-1 focus:ring-[var(--color-accent)]"
+            class="w-full resize-none rounded-lg border border-border bg-bg px-3 py-2 text-sm text-text outline-none focus:ring-1 focus:ring-(--color-accent)"
           />
 
           <div class="mt-1 flex gap-2">
@@ -196,7 +196,7 @@ export function EventEditor({
               type="button"
               onClick={() => void save()}
               disabled={busy || !canSave}
-              class="flex-1 rounded-lg bg-[var(--color-accent)] px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
+              class="flex-1 rounded-lg bg-(--color-accent) px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
             >
               {busy ? "Saving…" : event ? "Save" : "Add event"}
             </button>
@@ -232,7 +232,7 @@ function Switch({
       disabled={disabled}
       onClick={onChange}
       class={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
-        checked ? "bg-[var(--color-accent)]" : "bg-surface-2"
+        checked ? "bg-(--color-accent)" : "bg-surface-2"
       }`}
     >
       <span

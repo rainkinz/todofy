@@ -10,7 +10,7 @@ export function ReminderToasts() {
       {reminders.map((r) => (
         <div
           key={r.id}
-          class="pointer-events-auto flex w-80 animate-slide-left items-start gap-3 rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] p-3 shadow-lg shadow-black/30"
+          class="pointer-events-auto flex w-80 animate-slide-left items-start gap-3 rounded-xl border border-border-strong bg-elevated p-3 shadow-lg shadow-black/30"
         >
           <span class="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-accent-soft text-(--color-accent)">
             <BellIcon width={16} height={16} />
@@ -26,7 +26,7 @@ export function ReminderToasts() {
                   select(r.id);
                   dismissReminder(r.id);
                 }}
-                class="rounded-md bg-[var(--color-accent)] px-2.5 py-1 text-xs font-medium text-white hover:bg-[var(--color-accent-hover)]"
+                class="rounded-md bg-(--color-accent) px-2.5 py-1 text-xs font-medium text-white hover:bg-accent-hover"
               >
                 Open
               </button>

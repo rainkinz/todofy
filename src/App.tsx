@@ -117,7 +117,10 @@ export function App() {
         api.getSetting(SOUND_KEYS.ramp),
         api.getSetting(SOUND_KEYS.data),
       ]).catch(() => [null, null, null, null]);
-      playReminderSound(parseSoundSettings({ sound, volume, ramp, data }), e.payload);
+      playReminderSound(
+        parseSoundSettings({ sound, volume, ramp, data }),
+        e.payload,
+      );
     });
     // Refresh when a task is added from the quick-add window.
     const unAdded = listen("todo-added", () => load());
@@ -147,10 +150,13 @@ export function App() {
   useEffect(() => {
     let interval: number | undefined;
     const tick = () => setMinute((n) => n + 1);
-    const timeout = window.setTimeout(() => {
-      tick();
-      interval = window.setInterval(tick, 60_000);
-    }, 60_000 - (Date.now() % 60_000));
+    const timeout = window.setTimeout(
+      () => {
+        tick();
+        interval = window.setInterval(tick, 60_000);
+      },
+      60_000 - (Date.now() % 60_000),
+    );
     return () => {
       clearTimeout(timeout);
       if (interval !== undefined) clearInterval(interval);

@@ -25,12 +25,12 @@ export function SyncAccountDialog() {
 
   return (
     <div
-      class="fixed inset-0 z-[110] grid place-items-center bg-black/60 p-4 backdrop-blur-sm"
+      class="fixed inset-0 z-110 grid place-items-center bg-black/60 p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="sync-account-title"
     >
-      <div class="w-full max-w-md animate-fade-rise rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] p-5 shadow-2xl shadow-black/50">
+      <div class="w-full max-w-md animate-fade-rise rounded-xl border border-border-strong bg-elevated p-5 shadow-2xl shadow-black/50">
         <h3 id="sync-account-title" class="text-base font-semibold text-text">
           Choose data for this account
         </h3>
@@ -60,7 +60,7 @@ export function SyncAccountDialog() {
             type="button"
             onClick={() => choose("account")}
             disabled={busy !== null}
-            class="rounded-xl border border-border bg-[var(--color-surface)] px-4 py-3 text-left transition-colors hover:bg-surface-2 disabled:opacity-60"
+            class="rounded-xl border border-border bg-surface px-4 py-3 text-left transition-colors hover:bg-surface-2 disabled:opacity-60"
           >
             <span class="block text-sm font-semibold text-text">
               Use this account's data

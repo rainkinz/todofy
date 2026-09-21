@@ -104,7 +104,7 @@ export function AuthDialog() {
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-dialog-title"
-        class="relative w-full max-w-sm animate-fade-rise overflow-hidden rounded-2xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] shadow-2xl shadow-black/50"
+        class="relative w-full max-w-sm animate-fade-rise overflow-hidden rounded-2xl border border-border-strong bg-elevated shadow-2xl shadow-black/50"
       >
         <button
           type="button"
@@ -140,17 +140,17 @@ export function AuthDialog() {
             type="button"
             onClick={() => void google()}
             disabled={googleBusy || busy}
-            class="flex items-center justify-center gap-2.5 rounded-lg border border-border bg-[var(--color-bg)] px-3 py-2.5 text-sm font-medium text-text transition-colors hover:bg-surface-2 disabled:opacity-50"
+            class="flex items-center justify-center gap-2.5 rounded-lg border border-border bg-bg px-3 py-2.5 text-sm font-medium text-text transition-colors hover:bg-surface-2 disabled:opacity-50"
           >
             <GoogleIcon width={18} height={18} />
             {googleBusy ? "Waiting for browser…" : "Continue with Google"}
           </button>
           <div class="flex items-center gap-3">
-            <span class="h-px flex-1 bg-[var(--color-border)]" />
+            <span class="h-px flex-1 bg-border" />
             <span class="text-[10px] font-medium uppercase tracking-wider text-faint">
               or
             </span>
-            <span class="h-px flex-1 bg-[var(--color-border)]" />
+            <span class="h-px flex-1 bg-border" />
           </div>
         </div>
 
@@ -176,7 +176,7 @@ export function AuthDialog() {
           {notice && (
             <p
               role="status"
-              class="rounded-lg bg-[var(--color-success)]/10 px-3 py-2 text-xs text-[var(--color-success)]"
+              class="rounded-lg bg-[var(--color-success)]/10 px-3 py-2 text-xs text-success"
             >
               {notice}
             </p>
@@ -184,7 +184,7 @@ export function AuthDialog() {
           {error && (
             <p
               role="alert"
-              class="rounded-lg bg-[var(--color-danger)]/10 px-3 py-2 text-xs text-(--color-danger)"
+              class="rounded-lg bg-(--color-danger)/10 px-3 py-2 text-xs text-(--color-danger)"
             >
               {error}
             </p>
@@ -195,7 +195,7 @@ export function AuthDialog() {
             disabled={
               busy || googleBusy || !email.trim() || password.length < 6
             }
-            class="mt-1 rounded-lg bg-[var(--color-accent)] px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)] disabled:opacity-50"
+            class="mt-1 rounded-lg bg-(--color-accent) px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
           >
             {busy
               ? signup
@@ -260,7 +260,7 @@ function Field({
           placeholder={placeholder}
           autocomplete={autocomplete}
           onInput={(event) => onInput(event.currentTarget.value)}
-          class={`w-full rounded-lg border border-border bg-[var(--color-bg)] py-2 pl-3 text-sm outline-none transition-colors focus:border-(--color-accent) ${revealable ? "pr-10" : "pr-3"}`}
+          class={`w-full rounded-lg border border-border bg-bg py-2 pl-3 text-sm outline-none transition-colors focus:border-(--color-accent) ${revealable ? "pr-10" : "pr-3"}`}
         />
         {revealable && (
           <button

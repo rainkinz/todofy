@@ -34,8 +34,8 @@ import {
 export function WelcomeSlide() {
   return (
     <div class="px-2 pt-2 text-center">
-      <div class="relative mx-auto grid h-[124px] w-[124px] place-items-center">
-        <span class="onb-orb pointer-events-none absolute inset-[-14px] rounded-full bg-[var(--color-accent)] opacity-[0.18] blur-3xl" />
+      <div class="relative mx-auto grid h-31 w-31 place-items-center">
+        <span class="onb-orb pointer-events-none absolute -inset-3.5 rounded-full bg-(--color-accent) opacity-[0.18] blur-3xl" />
         <span class="onb-bloom relative">
           <Mark />
         </span>
@@ -48,7 +48,7 @@ export function WelcomeSlide() {
           <br />
           Nothing you don't.
         </h2>
-        <p class="mx-auto mt-3 max-w-[27rem] text-[13px] leading-5 text-muted">
+        <p class="mx-auto mt-3 max-w-108 text-[13px] leading-5 text-muted">
           Your tasks live on this machine, in a plain database file you own. Two
           minutes here and it will feel like yours.
         </p>
@@ -139,7 +139,7 @@ export function ThemeSlide() {
             class={`group rounded-2xl border-2 p-2.5 text-left transition-[border-color,transform] active:translate-y-px ${
               theme === mode
                 ? "border-(--color-accent)"
-                : "border-border hover:border-[var(--color-border-strong)]"
+                : "border-border hover:border-border-strong"
             }`}
           >
             <ThemePreview mode={mode} />
@@ -148,10 +148,10 @@ export function ThemeSlide() {
                 {mode === "dark" ? "Dark" : "Light"}
               </span>
               <span
-                class={`grid h-[18px] w-[18px] place-items-center rounded-full transition-colors ${
+                class={`grid h-4.5 w-4.5 place-items-center rounded-full transition-colors ${
                   theme === mode
-                    ? "bg-[var(--color-accent)] text-white"
-                    : "border border-[var(--color-border-strong)] text-transparent"
+                    ? "bg-(--color-accent) text-white"
+                    : "border border-border-strong text-transparent"
                 }`}
               >
                 <CheckIcon width={11} height={11} stroke-width={3} />
@@ -188,7 +188,7 @@ function ThemePreview({ mode }: { mode: "dark" | "light" }) {
         };
   return (
     <span
-      class="flex h-[104px] gap-1.5 overflow-hidden rounded-xl p-1.5"
+      class="flex h-26 gap-1.5 overflow-hidden rounded-xl p-1.5"
       style={{ background: c.bg }}
       aria-hidden="true"
     >
@@ -297,7 +297,7 @@ export function CaptureSlide() {
       </SlideText>
 
       <div class="mt-7">
-        <div class="flex items-center gap-3 rounded-2xl border border-[var(--color-border-strong)] bg-[var(--color-bg)] px-4 py-3.5 text-left shadow-inner shadow-black/5 transition-colors focus-within:border-(--color-accent)">
+        <div class="flex items-center gap-3 rounded-2xl border border-border-strong bg-bg px-4 py-3.5 text-left shadow-inner shadow-black/5 transition-colors focus-within:border-(--color-accent)">
           <PlusIcon
             width={20}
             height={20}
@@ -307,7 +307,7 @@ export function CaptureSlide() {
             {!touched && (
               <div class="pointer-events-none absolute inset-0 flex items-center whitespace-pre text-[13px] text-muted">
                 {ghost}
-                <span class="onb-caret ml-[1px] inline-block h-[15px] w-[1.5px] bg-[var(--color-accent)] align-middle" />
+                <span class="onb-caret ml-px inline-block h-3.75 w-[1.5px] bg-(--color-accent) align-middle" />
               </div>
             )}
             <input
@@ -324,7 +324,7 @@ export function CaptureSlide() {
           </div>
         </div>
 
-        <div class="mt-3 flex min-h-[26px] flex-wrap items-center justify-center gap-1.5">
+        <div class="mt-3 flex min-h-6.5 flex-wrap items-center justify-center gap-1.5">
           {parsed.priority !== null && (
             <ParsedChip
               key={`p${parsed.priority}`}
@@ -424,7 +424,7 @@ export function FocusSlide() {
         backend, so they keep counting with the window closed.
       </SlideText>
 
-      <div class="relative mx-auto mt-6 grid h-[134px] w-[134px] place-items-center">
+      <div class="relative mx-auto mt-6 grid h-33.5 w-33.5 place-items-center">
         <svg
           width="134"
           height="134"
@@ -463,7 +463,7 @@ export function FocusSlide() {
 
       <div class="mt-6">
         <p class="text-[11px] font-medium text-muted">Session length</p>
-        <div class="mt-2 inline-grid grid-cols-3 gap-1 rounded-xl border border-border bg-[var(--color-bg)] p-1">
+        <div class="mt-2 inline-grid grid-cols-3 gap-1 rounded-xl border border-border bg-bg p-1">
           {LENGTHS.map((minutes) => (
             <button
               key={minutes}
@@ -472,7 +472,7 @@ export function FocusSlide() {
               onClick={() => void choose(minutes)}
               class={`rounded-lg px-5 py-1.5 text-xs font-medium transition-colors ${
                 focusMin === minutes
-                  ? "bg-[var(--color-accent)] text-white"
+                  ? "bg-(--color-accent) text-white"
                   : "text-muted hover:text-text"
               }`}
             >
@@ -552,7 +552,7 @@ export function RemindersSlide() {
           desc="Get a notification the moment a reminder or timer is due."
         >
           {permission === "granted" ? (
-            <span class="inline-flex items-center gap-1.5 rounded-lg bg-[var(--color-success)]/12 px-3 py-1.5 text-xs font-medium text-[var(--color-success)]">
+            <span class="inline-flex items-center gap-1.5 rounded-lg bg-success/12 px-3 py-1.5 text-xs font-medium text-success">
               <CheckIcon width={12} height={12} stroke-width={3} />
               Enabled
             </span>
@@ -561,7 +561,7 @@ export function RemindersSlide() {
               type="button"
               disabled={permission === "working"}
               onClick={() => void enableNotifications()}
-              class="rounded-lg bg-[var(--color-accent)] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[var(--color-accent-hover)] disabled:opacity-60"
+              class="rounded-lg bg-(--color-accent) px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-60"
             >
               {permission === "working"
                 ? "Asking…"
@@ -586,7 +586,7 @@ export function RemindersSlide() {
       </div>
 
       {permission === "denied" && (
-        <p class="mt-3 text-[11px] text-[var(--color-warning)]">
+        <p class="mt-3 text-[11px] text-(--color-warning)">
           Your system refused the request. You can still allow todofy in your
           desktop's notification settings.
         </p>
@@ -599,14 +599,14 @@ export function RemindersSlide() {
 function HotkeyArt() {
   return (
     <div
-      class="relative mx-auto mt-6 h-[150px] w-full max-w-[400px]"
+      class="relative mx-auto mt-6 h-37.5 w-full max-w-100"
       aria-hidden="true"
     >
       <div class="absolute bottom-1 left-2 flex items-center gap-1">
         {["Ctrl", "Alt", "A"].map((key, i) => (
           <span
             key={key}
-            class="onb-key rounded-md border border-[var(--color-border-strong)] bg-surface-2 px-2 py-1 text-[10px] font-semibold text-muted shadow-sm"
+            class="onb-key rounded-md border border-border-strong bg-surface-2 px-2 py-1 text-[10px] font-semibold text-muted shadow-sm"
             style={{ animationDelay: `${i * 70}ms` }}
           >
             {key}
@@ -614,18 +614,18 @@ function HotkeyArt() {
         ))}
       </div>
 
-      <div class="onb-drop absolute left-1/2 top-0 w-[252px] -translate-x-1/2 overflow-hidden rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] shadow-2xl shadow-black/40">
+      <div class="onb-drop absolute left-1/2 top-0 w-63 -translate-x-1/2 overflow-hidden rounded-xl border border-border-strong bg-elevated shadow-2xl shadow-black/40">
         <div class="flex items-center gap-2 px-3 py-2.5">
           <PlusIcon width={14} height={14} class="text-(--color-accent)" />
           <span class="text-[11px] text-muted">Book the dentist…</span>
-          <span class="onb-caret ml-[-4px] inline-block h-[11px] w-[1.5px] bg-[var(--color-accent)]" />
+          <span class="onb-caret -ml-1 inline-block h-2.75 w-[1.5px] bg-(--color-accent)" />
         </div>
         <div class="border-t border-border px-3 py-1.5 text-[9px] text-faint">
           Enter to save · Esc to dismiss
         </div>
       </div>
 
-      <div class="onb-toast absolute bottom-0 right-0 flex w-[210px] items-center gap-2 rounded-xl border border-border bg-[var(--color-surface)] px-3 py-2.5 shadow-lg shadow-black/20">
+      <div class="onb-toast absolute bottom-0 right-0 flex w-52.5 items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5 shadow-lg shadow-black/20">
         <span class="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-accent-soft text-(--color-accent)">
           <BellIcon width={12} height={12} />
         </span>
@@ -683,7 +683,7 @@ export function FeaturesSlide() {
         {FEATURES.map((feature, i) => (
           <div
             key={feature.title}
-            class="onb-pop rounded-2xl border border-border bg-[var(--color-surface)] p-4"
+            class="onb-pop rounded-2xl border border-border bg-surface p-4"
             style={{ animationDelay: `${140 + i * 90}ms` }}
           >
             <span
@@ -720,7 +720,7 @@ export function FinishSlide() {
 
   return (
     <div class="onb-stagger text-center">
-      <span class="onb-bloom mx-auto grid h-14 w-14 place-items-center rounded-full bg-[var(--color-success)]/12 text-[var(--color-success)]">
+      <span class="onb-bloom mx-auto grid h-14 w-14 place-items-center rounded-full bg-success/12 text-success">
         <CheckIcon width={26} height={26} stroke-width={2.5} />
       </span>
 
@@ -737,9 +737,9 @@ export function FinishSlide() {
         {SHORTCUTS.map(([keys, what]) => (
           <div
             key={keys}
-            class="flex items-center justify-between rounded-xl border border-border bg-[var(--color-surface)] px-4 py-2.5"
+            class="flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-2.5"
           >
-            <kbd class="rounded-md border border-[var(--color-border-strong)] bg-surface-2 px-2 py-1 text-[11px] font-semibold text-text">
+            <kbd class="rounded-md border border-border-strong bg-surface-2 px-2 py-1 text-[11px] font-semibold text-text">
               {keys}
             </kbd>
             <span class="text-[12px] text-muted">{what}</span>
@@ -801,7 +801,7 @@ function SlideTitle({
 
 function SlideText({ children }: { children: ComponentChildren }) {
   return (
-    <p class="mx-auto mt-2.5 max-w-[27rem] text-[13px] leading-5 text-muted">
+    <p class="mx-auto mt-2.5 max-w-108 text-[13px] leading-5 text-muted">
       {children}
     </p>
   );
@@ -815,7 +815,7 @@ function TrustChip({
   children: ComponentChildren;
 }) {
   return (
-    <span class="inline-flex items-center gap-1.5 rounded-full border border-border bg-[var(--color-surface)] px-2.5 py-1 text-[11px] font-medium text-muted">
+    <span class="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-1 text-[11px] font-medium text-muted">
       <span class="text-(--color-accent)">{icon}</span>
       {children}
     </span>
@@ -834,7 +834,7 @@ function ActionRow({
   children: ComponentChildren;
 }) {
   return (
-    <div class="flex items-center gap-3 rounded-xl border border-border bg-[var(--color-surface)] px-4 py-3 text-left">
+    <div class="flex items-center gap-3 rounded-xl border border-border bg-surface px-4 py-3 text-left">
       <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-surface-2 text-muted">
         {icon}
       </span>
@@ -864,7 +864,7 @@ function MiniSwitch({
       disabled={disabled}
       onClick={onChange}
       class={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 ${
-        checked ? "bg-[var(--color-accent)]" : "bg-surface-2"
+        checked ? "bg-(--color-accent)" : "bg-surface-2"
       }`}
     >
       <span

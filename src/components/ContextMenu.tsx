@@ -76,11 +76,11 @@ export function ContextMenu({ appItems }: { appItems?: AppItems }) {
         top: pos ? pos.top : menu.y,
         visibility: pos ? "visible" : "hidden",
       }}
-      class="fixed z-[200] min-w-[190px] animate-fade-rise overflow-hidden rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-elevated)] p-1 shadow-2xl shadow-black/50"
+      class="fixed z-200 min-w-47.5 animate-fade-rise overflow-hidden rounded-xl border border-border-strong bg-elevated p-1 shadow-2xl shadow-black/50"
     >
       {menu.items.map((item, i) =>
         item === "divider" ? (
-          <div key={i} class="my-1 h-px bg-[var(--color-border)]" />
+          <div key={i} class="my-1 h-px bg-border" />
         ) : (
           <button
             key={i}
@@ -90,7 +90,7 @@ export function ContextMenu({ appItems }: { appItems?: AppItems }) {
             }}
             class={`flex w-full items-center justify-between gap-6 rounded-lg px-2.5 py-1.5 text-left text-sm transition-colors ${
               item.danger
-                ? "text-(--color-danger) hover:bg-[var(--color-danger)]/12"
+                ? "text-(--color-danger) hover:bg-(--color-danger)/12"
                 : "text-text hover:bg-surface-2"
             }`}
           >

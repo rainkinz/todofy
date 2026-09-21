@@ -77,6 +77,26 @@ To test voice input from source with local engine and model files, follow [local
   </tr>
   <tr>
     <td width="50%">
+      <img src="docs/voice.png" alt="Voice settings with the local whisper.cpp engine and multilingual speech models installed" /><br />
+      <sub><b>Local voice</b> — private on-device dictation with whisper.cpp, downloadable multilingual models, and editable transcripts.</sub>
+    </td>
+    <td width="50%">
+      <img src="docs/onboarding.png" alt="Todofy welcome tour highlighting journal, calendar, labels, and repeating tasks" /><br />
+      <sub><b>Welcome tour</b> — a polished first run through capture, focus, reminders, and the wider workspace.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/board.png" alt="Board view with tasks arranged across workflow stages" /><br />
+      <sub><b>Board</b> — move work from idea to done without losing task context.</sub>
+    </td>
+    <td width="50%">
+      <img src="docs/calendar.png" alt="Month calendar showing tasks, reminders, and standalone events" /><br />
+      <sub><b>Calendar</b> — see tasks, reminders, and events together across the month.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
       <img src="docs/focus.png" alt="Redesigned Focus workspace with Pomodoro timer, session plan, and history" /><br />
       <sub><b>Focus workspace</b> — one calm timer, a flexible session plan, and progress history.</sub>
     </td>
@@ -87,8 +107,8 @@ To test voice input from source with local engine and model files, follow [local
   </tr>
   <tr>
     <td width="50%">
-      <img src="docs/settings.png" alt="Settings view showing appearance, keyboard, website, and GitHub links" /><br />
-      <sub><b>Settings</b> — focused preferences plus direct website and GitHub links.</sub>
+      <img src="docs/settings.png" alt="Settings view showing cloud account, calendar integration, and local voice options" /><br />
+      <sub><b>Settings</b> — cloud sync, calendar, and private on-device voice controls in one place.</sub>
     </td>
     <td width="50%">
       <img src="docs/quickadd.png" alt="Floating global quick-capture window" /><br />
@@ -164,8 +184,8 @@ one. **Settings → Updates** is where this lives:
 
 | Setting                   | What it does                                                                          |
 | ------------------------- | ------------------------------------------------------------------------------------- |
-| **Check automatically**   | The daily look. Turn it off and todofy only checks when you press **Check now**        |
-| **Install automatically** | Offers each new version as soon as it's found, then downloads and installs on your OK  |
+| **Check automatically**   | The daily look. Turn it off and todofy only checks when you press **Check now**       |
+| **Install automatically** | Offers each new version as soon as it's found, then downloads and installs on your OK |
 
 Neither one takes the decision away from you: todofy always asks before
 downloading and never restarts on its own, so an update can't interrupt a
